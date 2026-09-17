@@ -1,0 +1,55 @@
+<!doctype html>
+<html lang="ko">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Velog Alert · 휴대폰 알림</title>
+    <link rel="stylesheet" href="./options.css" />
+  </head>
+  <body>
+    <main class="wrap">
+      <header>
+        <div class="logo">V</div>
+        <div>
+          <p class="eyebrow">VELOG ALERT</p>
+          <h1>휴대폰 알림 설정</h1>
+          <p class="subtitle">별도 서버 없이 ntfy 앱으로 새 알림을 전달합니다.</p>
+        </div>
+      </header>
+      <section class="card">
+        <div class="row">
+          <div>
+            <strong>휴대폰 알림</strong>
+            <p>Chrome에서 감지한 알림을 ntfy.sh로 전달합니다.</p>
+          </div>
+          <label class="switch">
+            <input id="enabled" type="checkbox" />
+            <span></span>
+          </label>
+        </div>
+      </section>
+      <section id="setup" class="card hidden">
+        <p class="step">1. 휴대폰에 ntfy 앱 설치</p>
+        <p class="description">Android 또는 iPhone의 ntfy 앱을 설치합니다.</p>
+        <p class="step">2. 아래 Topic 구독</p>
+        <code id="topic">-</code>
+        <div class="buttons">
+          <button id="copyTopic" class="secondary">Topic 복사</button>
+          <button id="regenerateTopic" class="secondary">새 Topic</button>
+        </div>
+        <p class="step">3. 연결 테스트</p>
+        <button id="testPush" class="primary">휴대폰 테스트 알림 보내기</button>
+        <p id="status" class="status"></p>
+      </section>
+      <section class="notice">
+        <strong>간단한 대신 알아둘 점</strong>
+        <p>
+          Topic 이름 자체가 비밀값입니다. 공개하지 마세요.
+          휴대폰 알림을 켜면 알림 제목·내용·게시글 URL이 ntfy.sh를 거쳐 전달됩니다.
+          Velog 로그인 토큰이나 쿠키는 전송하지 않습니다.
+        </p>
+      </section>
+    </main>
+    <script type="module" src="./options.js"></script>
+  </body>
+</html>
