@@ -13,7 +13,6 @@ export async function enforceMinuteRateLimit(
 
   const current = (await store.get(key, {
     type: "json",
-    consistency: "strong",
   })) as { count: number } | null;
 
   const count = (current?.count ?? 0) + 1;
