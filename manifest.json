@@ -1,8 +1,8 @@
 {
   "manifest_version": 3,
   "name": "Velog Alert",
-  "version": "1.1.0",
-  "description": "Velog의 새 댓글·답글·좋아요·팔로우와 팔로잉 새 글을 감지해 Chrome 알림으로 알려줍니다.",
+  "version": "2.0.0",
+  "description": "Velog 새 활동과 팔로잉 새 글을 감지해 Chrome 및 휴대폰 알림으로 알려줍니다.",
   "permissions": [
     "alarms",
     "cookies",
@@ -12,7 +12,8 @@
   ],
   "host_permissions": [
     "https://velog.io/*",
-    "https://v3.velog.io/*"
+    "https://v3.velog.io/*",
+    "https://ntfy.sh/*"
   ],
   "background": {
     "service_worker": "src/background/service-worker.js",
@@ -47,5 +48,9 @@
   ],
   "content_security_policy": {
     "extension_pages": "script-src 'self'; object-src 'self'; frame-src https://velog.io"
+  },
+  "options_ui": {
+    "page": "src/mobile/options.html",
+    "open_in_tab": true
   }
 }
