@@ -1,5 +1,6 @@
 import type { Config } from "@netlify/functions";
 import { preflight, json } from "./_shared/http.mts";
+import { getOrCreateVapidKeys } from "./_shared/vapid.mts";
 
 export default async (req: Request) => {
   const options = preflight(req);
@@ -7,12 +8,13 @@ export default async (req: Request) => {
 
   if (req.method !== "GET") return json({ error: "METHOD_NOT_ALLOWED" }, 405);
 
-  const key = process.env.VAPID_PUBLIC_KEY;
-  if (!key) return json({ error: "PUSH_NOT_CONFIGURED" }, 503);
-
-  return json({
-    vapidPublicKey: key,
-  });
+  try {
+    const keys = await getOrCreateVapidKeys();
+    return json({ vapidPublicKey: keys.publicKey });
+  } catch (error) {
+    console.error("[push-config] failed to prepare VAPID keys", error);
+    return json({ error: "PUSH_CONFIGURATION_FAILED" }, 500);
+  }
 };
 
 export const config: Config = {
