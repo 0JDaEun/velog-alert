@@ -1,6 +1,6 @@
 [build]
   publish = "pwa"
-  functions = "netlify/functions"
 
 [functions]
+  directory = "netlify/functions"
   node_bundler = "esbuild"
