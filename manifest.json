@@ -1,18 +1,19 @@
 {
   "manifest_version": 3,
   "name": "Velog Alert",
-  "version": "1.1.0",
-  "description": "Velog의 새 댓글·답글·좋아요·팔로우와 팔로잉 새 글을 감지해 Chrome 알림으로 알려줍니다.",
+  "version": "2.0.0",
+  "description": "Velog 새 활동을 감지해 데스크톱과 연결된 모바일 PWA에 알림을 전달합니다.",
   "permissions": [
     "alarms",
     "cookies",
     "notifications",
-    "offscreen",
-    "storage"
+    "storage",
+    "offscreen"
   ],
   "host_permissions": [
     "https://velog.io/*",
-    "https://v3.velog.io/*"
+    "https://v3.velog.io/*",
+    "https://velog-alert-mobile.netlify.app/*"
   ],
   "background": {
     "service_worker": "src/background/service-worker.js",
@@ -32,7 +33,6 @@
     "48": "assets/icon48.png",
     "128": "assets/icon128.png"
   },
-  "minimum_chrome_version": "109",
   "content_scripts": [
     {
       "matches": [
@@ -41,11 +41,9 @@
       "js": [
         "src/bridge/velog-page-bridge.js"
       ],
-      "all_frames": true,
-      "run_at": "document_idle"
+      "run_at": "document_idle",
+      "all_frames": true
     }
   ],
-  "content_security_policy": {
-    "extension_pages": "script-src 'self'; object-src 'self'; frame-src https://velog.io"
-  }
+  "options_page": "src/mobile/options.html"
 }

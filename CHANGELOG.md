@@ -1,5 +1,25 @@
 # Changelog
 
+## 2.0.0 — in development
+
+### Added
+
+- Android / iPhone 공통 Velog Alert PWA
+- 6자리 일회용 휴대폰 연결 코드
+- 10분 pairing 만료 / 1회 사용
+- Web Push subscription 등록
+- Netlify Functions 기반 Tiny Push Relay
+- Netlify Blobs 기반 pairing / device / dedup 저장
+- extensionSecret SHA-256 식별
+- 모바일 기기 목록 확인
+- 모바일 알림 전송 실패와 Desktop 알림 경로 격리
+
+### Security
+
+- Velog access token / refresh token / cookie는 Push Relay로 보내지 않음
+- VAPID private key는 server environment에만 저장
+- pairing claim IP rate limit 및 code attempt 제한
+
 ## 1.1.0 — 2026-09-17
 
 ### Added

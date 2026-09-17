@@ -1,0 +1,29 @@
+:root { font-family: Inter, Pretendard, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; color: #17212b; background: #f5f7f8; }
+* { box-sizing: border-box; }
+body { margin: 0; }
+main { width: min(calc(100% - 36px), 650px); margin: 0 auto; padding: 34px 0 60px; }
+header { display: flex; gap: 13px; align-items: center; margin-bottom: 22px; }
+.logo { width: 48px; height: 48px; display: grid; place-items: center; border-radius: 15px; background: #20c997; color: white; font-size: 24px; font-weight: 900; }
+.eyebrow, .step { margin: 0; color: #12a77a; font-size: 11px; font-weight: 900; letter-spacing: .1em; }
+h1 { margin: 2px 0 0; font-size: 25px; }
+h2 { margin: 4px 0 8px; font-size: 17px; }
+p { color: #65737e; line-height: 1.5; }
+.card { margin-bottom: 13px; padding: 20px; border: 1px solid #e3e9ec; border-radius: 18px; background: white; }
+.row, .title-row { display: flex; align-items: center; justify-content: space-between; gap: 20px; }
+.row p { margin: 5px 0 0; font-size: 13px; }
+input[type=checkbox] { width: 21px; height: 21px; accent-color: #20c997; }
+button { border: 0; border-radius: 11px; padding: 12px 14px; font: inherit; font-weight: 800; cursor: pointer; }
+.primary { width: 100%; background: #20c997; color: white; }
+.secondary { background: #eaf0f2; color: #34424b; }
+.text-button { background: transparent; color: #12a77a; padding: 7px 0; }
+.code-box { display: grid; justify-items: center; margin-top: 14px; padding: 18px; border-radius: 14px; background: #effcf7; }
+.code-box span, .code-box small { color: #65756f; }
+.code-box strong { margin: 8px 0; font-size: 34px; letter-spacing: .08em; }
+.devices { display: grid; gap: 8px; }
+.device { padding: 12px; border: 1px solid #e5ebed; border-radius: 12px; }
+.device strong { display: block; }
+.device small { color: #718087; }
+.dev input { width: 100%; margin: 8px 0; padding: 11px; border: 1px solid #dce3e6; border-radius: 10px; }
+.note, .muted { font-size: 12px; }
+.status { position: sticky; bottom: 15px; margin-top: 12px; padding: 12px 14px; border-radius: 12px; background: #19222a; color: white; font-size: 13px; }
+.hidden { display: none !important; }

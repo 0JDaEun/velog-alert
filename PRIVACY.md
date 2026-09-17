@@ -57,16 +57,30 @@ Velog 인증 토큰의 실제 값은 로컬 저장소에 저장하지 않습니�
 
 ## 4. 외부 전송 및 제3자 제공
 
-Velog Alert는 별도의 개발자 서버를 운영하지 않습니다.
+Velog Alert의 데스크톱 기능은 별도 서버 없이 동작합니다. v2.0의 **휴대폰 알림 기능을 사용자가 직접 활성화한 경우에만** Tiny Push Relay와 통신합니다.
 
-사용자 데이터는 Velog Alert의 기능 제공에 필요한 범위에서 Velog 서비스와 통신할 때 사용되며, 광고·분석·마케팅 목적으로 다른 제3자에게 판매하거나 제공하지 않습니다.
+Push Relay에는 휴대폰 Web Push 전달에 필요한 Push Subscription, 임의 기기 ID, 기기 이름, 해시된 Extension/Device 식별값이 저장될 수 있습니다. Velog 비밀번호, `access_token`, `refresh_token`, Velog 쿠키는 Push Relay로 전송하거나 저장하지 않습니다.
+
+휴대폰 알림 전달 시 새 활동의 알림 제목, 본문, 관련 Velog URL, 이벤트 중복 방지용 ID가 처리될 수 있습니다. 광고·분석·마케팅 목적으로 데이터를 판매하거나 사용하지 않습니다.
 
 Velog Alert 자체는 다음과 같은 외부 분석 서비스를 사용하지 않습니다.
 
 - Google Analytics
 - 광고 SDK
 - 사용자 행동 추적 SDK
-- 자체 원격 데이터 수집 서버
+- 광고 목적의 자체 원격 데이터 수집 서버
+
+### Mobile Push Relay
+
+휴대폰 알림을 활성화한 경우 서버에는 다음 최소 정보가 저장될 수 있습니다.
+
+- Push Subscription endpoint / p256dh / auth
+- 임의 device ID와 사용자가 정한 기기 이름
+- SHA-256으로 해시된 Extension/Device 식별값
+- 중복 Push 방지용 event key
+- 일회성 6자리 pairing session(최대 10분)
+
+6자리 pairing code는 연결 완료 후 즉시 삭제되며, 만료 시간은 10분입니다.
 
 ## 5. 데이터 보관 및 삭제
 

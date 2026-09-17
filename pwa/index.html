@@ -1,0 +1,78 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <meta name="theme-color" content="#20c997" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-title" content="Velog Alert" />
+  <title>Velog Alert Mobile</title>
+  <link rel="manifest" href="/manifest.webmanifest" />
+  <link rel="stylesheet" href="/styles.css" />
+  <link rel="apple-touch-icon" href="/icon192.png" />
+</head>
+<body>
+  <main class="shell">
+    <header class="hero">
+      <div class="logo">V</div>
+      <div>
+        <p class="eyebrow">VELOG ALERT</p>
+        <h1>휴대폰 알림 연결</h1>
+        <p>앱스토어 설치 없이 홈 화면에 추가하고 알림을 받을 수 있습니다.</p>
+      </div>
+    </header>
+
+    <section id="installCard" class="card">
+      <span class="step">STEP 1</span>
+      <h2>홈 화면에 추가</h2>
+      <p id="installHelp">이 웹앱을 홈 화면에 추가하세요.</p>
+      <button id="installButton" class="primary hidden">앱 설치하기</button>
+      <div id="iosGuide" class="guide hidden">
+        <strong>iPhone</strong>
+        <span>Safari의 공유 버튼 → <b>홈 화면에 추가</b> → Velog Alert 실행</span>
+      </div>
+      <div id="installedBadge" class="success hidden">홈 화면 앱으로 실행 중</div>
+    </section>
+
+    <section class="card">
+      <span class="step">STEP 2</span>
+      <h2>PC 연결 코드 입력</h2>
+      <p>PC의 Velog Alert에서 표시된 6자리 코드를 입력하세요.</p>
+
+      <input
+        id="pairCode"
+        inputmode="numeric"
+        autocomplete="one-time-code"
+        maxlength="7"
+        placeholder="123 456"
+        aria-label="6자리 연결 코드"
+      />
+
+      <input
+        id="deviceName"
+        maxlength="40"
+        placeholder="기기 이름 (예: 내 iPhone)"
+        aria-label="기기 이름"
+      />
+
+      <button id="connectButton" class="primary">알림 허용 및 연결</button>
+    </section>
+
+    <section class="status">
+      <span id="statusDot" class="dot"></span>
+      <div>
+        <strong id="statusTitle">연결 전</strong>
+        <p id="statusMessage">홈 화면에 추가한 뒤 연결 코드를 입력하세요.</p>
+      </div>
+    </section>
+
+    <button id="disconnectButton" class="danger hidden">이 기기 연결 해제</button>
+
+    <p class="privacy">
+      Velog 비밀번호·쿠키·access token은 Push 서버에 저장하거나 전송하지 않습니다.
+    </p>
+  </main>
+
+  <script type="module" src="/app.js"></script>
+</body>
+</html>

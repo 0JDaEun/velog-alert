@@ -217,3 +217,19 @@ Velog 로그인
 ## 주의
 
 Velog Alert는 Velog 웹 서비스가 사용하는 인터페이스에 의존합니다. Velog의 내부 API 또는 인증 방식이 변경되면 확장 프로그램 업데이트가 필요할 수 있습니다.
+
+## Mobile PWA (v2.0 개발 중)
+
+Android와 iPhone에서 별도 앱스토어 설치 없이 홈 화면에 추가하는 PWA를 개발 중입니다.
+
+```text
+PC Extension
+→ 6자리 연결 코드
+
+Phone PWA
+→ 코드 입력
+→ 알림 허용
+→ Web Push
+```
+
+구현 상세는 [`docs/MOBILE_PWA_CODE_PAIRING.md`](docs/MOBILE_PWA_CODE_PAIRING.md)를 참고하세요.
