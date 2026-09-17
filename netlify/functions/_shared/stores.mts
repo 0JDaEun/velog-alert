@@ -1,4 +1,4 @@
-import { getStore } from "@netlify/blobs";
+import { getDeployStore, getStore } from "@netlify/blobs";
 
 export type PushSubscriptionJSON = {
   endpoint: string;
@@ -33,16 +33,27 @@ export type PairingRecord = {
   attempts: number;
 };
 
-export const pairingStore = () => getStore("velog-alert-pairing");
-export const deviceStore = () => getStore("velog-alert-devices");
-export const tokenStore = () => getStore("velog-alert-device-tokens");
-export const dedupStore = () => getStore("velog-alert-dedup");
-export const rateStore = () => getStore("velog-alert-rate");
+function isProductionDeploy() {
+  return Netlify.context?.deploy?.context === "production";
+}
+
+function blobStore(name: string) {
+  if (isProductionDeploy()) {
+    return getStore(name, { consistency: "strong" });
+  }
+
+  return getDeployStore(name);
+}
+
+export const pairingStore = () => blobStore("velog-alert-pairing");
+export const deviceStore = () => blobStore("velog-alert-devices");
+export const tokenStore = () => blobStore("velog-alert-device-tokens");
+export const dedupStore = () => blobStore("velog-alert-dedup");
+export const rateStore = () => blobStore("velog-alert-rate");
 
 export async function getExtensionRecord(extensionHash: string) {
   return deviceStore().get(`extension:${extensionHash}`, {
     type: "json",
-    consistency: "strong",
   }) as Promise<ExtensionRecord | null>;
 }
 
