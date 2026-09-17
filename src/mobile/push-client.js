@@ -115,3 +115,14 @@ export async function sendMobilePush(item) {
 
   return payload;
 }
+
+export async function sendMobileTestPush() {
+  return sendMobilePush({
+    id: `mobile-test:${Date.now()}`,
+    type: "mobileTest",
+    displayTitle: "Velog Alert 모바일 테스트",
+    displayMessage: "휴대폰 Web Push 연결이 정상입니다.",
+    url: "https://velog.io/notifications",
+    createdAt: new Date().toISOString(),
+  });
+}
