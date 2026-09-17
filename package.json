@@ -1,10 +1,10 @@
 {
   "name": "velog-alert",
-  "version": "1.1.0",
+  "version": "2.0.0",
   "private": true,
   "type": "module",
   "scripts": {
     "test": "node --test tests/*.test.js",
-    "check": "node --check src/background/service-worker.js && node --check src/api/velog-api.js && node --check src/api/velog-auth.js && node --check src/core/notification-parser.js && node --check src/core/notification-detector.js && node --check src/core/feed-post-parser.js && node --check src/core/feed-post-detector.js && node --check src/core/notification-manager.js && node --check src/storage/storage.js && node --check src/popup/popup.js"
+    "check": "node --check src/background/service-worker.js && node --check src/api/velog-api.js && node --check src/api/velog-auth.js && node --check src/core/notification-parser.js && node --check src/core/notification-detector.js && node --check src/core/feed-post-parser.js && node --check src/core/feed-post-detector.js && node --check src/core/notification-manager.js && node --check src/storage/storage.js && node --check src/popup/popup.js && node --check src/mobile/ntfy-client.js && node --check src/mobile/options.js"
   }
 }
