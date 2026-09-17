@@ -1,5 +1,20 @@
 # Changelog
 
+## 2.0.0 — 2026-09-17
+
+### Added
+
+- ntfy 기반 휴대폰 알림
+- 별도 Supabase / 백엔드 없이 동작
+- 24-byte random secret Topic 자동 생성
+- Topic 복사 / 재생성 / 테스트 알림
+- 휴대폰 알림 클릭 시 관련 Velog URL 이동
+
+### Privacy
+
+- 휴대폰 알림이 켜진 경우 알림 제목, 본문, 관련 URL이 `ntfy.sh`로 전송될 수 있음
+- Velog access token / refresh token / cookies는 ntfy로 전송하지 않음
+
 ## 1.1.0 — 2026-09-17
 
 ### Added
