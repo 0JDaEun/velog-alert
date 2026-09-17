@@ -10,7 +10,8 @@ test("mobile pairing uses six digit one-time code and ten minute ttl", async () 
 
   assert.match(source, /10 \* 60 \* 1000/);
   assert.match(source, /randomCode/);
-  assert.match(source, /onlyIfNew/);
+  assert.match(source, /store\.get/);
+  assert.match(source, /store\.setJSON/);
 });
 
 test("pair claim removes pairing code after successful device registration", async () => {
@@ -30,4 +31,26 @@ test("relay never accepts Velog token fields", async () => {
   );
 
   assert.doesNotMatch(source, /access_token|refresh_token|cookie/i);
+});
+
+test("Netlify functions use supported Blobs consistency and auto-provision VAPID", async () => {
+  const stores = await readFile(
+    new URL("../netlify/functions/_shared/stores.mts", import.meta.url),
+    "utf8"
+  );
+  const push = await readFile(
+    new URL("../netlify/functions/push-send.mts", import.meta.url),
+    "utf8"
+  );
+  const vapid = await readFile(
+    new URL("../netlify/functions/_shared/vapid.mts", import.meta.url),
+    "utf8"
+  );
+
+  assert.match(stores, /getStore\(name, \{ consistency: "strong" \}\)/);
+  assert.doesNotMatch(stores, /get\([^)]*consistency/);
+  assert.match(push, /getOrCreateVapidKeys/);
+  assert.match(vapid, /generateVAPIDKeys/);
+  assert.doesNotMatch(push, /process\.env|Netlify\.env/);
+  assert.doesNotMatch(push, /onlyIfNew/);
 });
