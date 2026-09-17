@@ -52,7 +52,6 @@ export default async (req: Request, context: Context) => {
   const key = `pair:${code}`;
   const pairing = (await store.get(key, {
     type: "json",
-    consistency: "strong",
   })) as PairingRecord | null;
 
   if (!pairing) return json({ error: "PAIRING_CODE_NOT_FOUND" }, 404);
