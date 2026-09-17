@@ -33,6 +33,7 @@
     "48": "assets/icon48.png",
     "128": "assets/icon128.png"
   },
+  "minimum_chrome_version": "109",
   "content_scripts": [
     {
       "matches": [
@@ -45,5 +46,8 @@
       "all_frames": true
     }
   ],
+  "content_security_policy": {
+    "extension_pages": "script-src 'self'; object-src 'self'; frame-src https://velog.io"
+  },
   "options_page": "src/mobile/options.html"
 }
