@@ -19,7 +19,6 @@ export default async (req: Request) => {
   const tokenHash = await sha256(token);
   const mapping = (await tokenStore().get(`token:${tokenHash}`, {
     type: "json",
-    consistency: "strong",
   })) as { extensionHash: string; deviceId: string } | null;
 
   if (!mapping) return json({ error: "DEVICE_NOT_FOUND" }, 404);
