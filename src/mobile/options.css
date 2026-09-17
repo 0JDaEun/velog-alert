@@ -26,4 +26,5 @@ button { border: 0; border-radius: 11px; padding: 12px 14px; font: inherit; font
 .dev input { width: 100%; margin: 8px 0; padding: 11px; border: 1px solid #dce3e6; border-radius: 10px; }
 .note, .muted { font-size: 12px; }
 .status { position: sticky; bottom: 15px; margin-top: 12px; padding: 12px 14px; border-radius: 12px; background: #19222a; color: white; font-size: 13px; }
+.test-button { width: 100%; margin-top: 12px; }
 .hidden { display: none !important; }
