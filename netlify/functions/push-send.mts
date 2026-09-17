@@ -7,6 +7,7 @@ import {
   getExtensionRecord,
   saveExtensionRecord,
 } from "./_shared/stores.mts";
+import { getOrCreateVapidKeys } from "./_shared/vapid.mts";
 
 type MobileEvent = {
   eventKey: string;
@@ -54,14 +55,6 @@ export default async (req: Request) => {
   const secret = req.headers.get("X-Extension-Secret")?.trim() ?? "";
   if (!validSecret(secret)) return json({ error: "INVALID_EXTENSION_SECRET" }, 401);
 
-  const publicKey = process.env.VAPID_PUBLIC_KEY;
-  const privateKey = process.env.VAPID_PRIVATE_KEY;
-  const subject = process.env.VAPID_SUBJECT || "mailto:admin@example.com";
-
-  if (!publicKey || !privateKey) {
-    return json({ error: "PUSH_NOT_CONFIGURED" }, 503);
-  }
-
   let event: MobileEvent;
   try {
     const body = await req.json();
@@ -79,18 +72,16 @@ export default async (req: Request) => {
 
   const dedupKey = `${extensionHash}:${event.eventKey}`;
   const dedup = dedupStore();
+  const existingEvent = await dedup.get(dedupKey);
 
-  const dedupResult = await dedup.set(
-    dedupKey,
-    new Date().toISOString(),
-    { onlyIfNew: true },
-  );
-
-  if (!dedupResult.modified) {
+  if (existingEvent) {
     return json({ ok: true, delivered: 0, duplicate: true });
   }
 
-  webpush.setVapidDetails(subject, publicKey, privateKey);
+  await dedup.set(dedupKey, new Date().toISOString());
+
+  const vapid = await getOrCreateVapidKeys();
+  webpush.setVapidDetails(vapid.subject, vapid.publicKey, vapid.privateKey);
 
   let delivered = 0;
   let changed = false;
