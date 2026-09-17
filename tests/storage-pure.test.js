@@ -1,6 +1,11 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { mergeSeenIds, mergeHistory } from '../src/storage/storage.js';
+import {
+  mergeSeenIds,
+  mergeSeenFeedPostIds,
+  normalizeKnownFollowingUserIds,
+  mergeHistory,
+} from '../src/storage/storage.js';
 
 test('mergeSeenIds deduplicates with newest current ids first', () => {
   assert.deepEqual(
@@ -37,4 +42,25 @@ test('mergeHistory deduplicates notification ids', () => {
   );
 
   assert.deepEqual(merged.map((item) => item.id), ['2', '1']);
+});
+
+
+test('mergeSeenFeedPostIds deduplicates feed post ids', () => {
+  const result = mergeSeenFeedPostIds(
+    ['feed-post:a', 'feed-post:b'],
+    ['feed-post:c', 'feed-post:a']
+  );
+
+  assert.deepEqual(result.slice(0, 3), [
+    'feed-post:c',
+    'feed-post:a',
+    'feed-post:b',
+  ]);
+});
+
+test('normalizeKnownFollowingUserIds deduplicates user ids', () => {
+  assert.deepEqual(
+    normalizeKnownFollowingUserIds(['u1', 'u2', 'u1', null]),
+    ['u1', 'u2']
+  );
 });

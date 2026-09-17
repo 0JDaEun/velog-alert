@@ -1,16 +1,74 @@
 import { CONFIG } from '../constants/config.js';
 import { getVelogAccessToken, VelogAuthError } from './velog-auth.js';
 
+const NOTIFICATIONS_FIELDS = `
+  id
+  type
+  action
+  actor_id
+  action_id
+  is_read
+  created_at
+`;
+
+const FEED_POST_FIELDS = `
+  id
+  title
+  short_description
+  thumbnail
+  user {
+    id
+    username
+    profile {
+      id
+      thumbnail
+      display_name
+    }
+  }
+  url_slug
+  released_at
+  updated_at
+  is_private
+`;
+
 const NOTIFICATIONS_QUERY = `
   query notification($input: NotificationsInput!) {
     notifications(input: $input) {
+      ${NOTIFICATIONS_FIELDS}
+    }
+  }
+`;
+
+const ALERT_SNAPSHOT_QUERY = `
+  query velogAlertSnapshot(
+    $notificationInput: NotificationsInput!
+    $feedInput: FeedPostsInput!
+  ) {
+    notifications(input: $notificationInput) {
+      ${NOTIFICATIONS_FIELDS}
+    }
+    currentUser {
       id
-      type
-      action
-      actor_id
-      action_id
-      is_read
-      created_at
+      username
+    }
+    feedPosts(input: $feedInput) {
+      ${FEED_POST_FIELDS}
+    }
+  }
+`;
+
+const FOLLOWINGS_QUERY = `
+  query getFollowings($input: GetFollowInput!) {
+    followings(input: $input) {
+      id
+      userId
+      username
+      profile {
+        short_bio
+        thumbnail
+        display_name
+      }
+      is_followed
     }
   }
 `;
@@ -35,6 +93,34 @@ export function getNotificationsGraphQLRequest() {
   };
 }
 
+export function getAlertSnapshotGraphQLRequest() {
+  return {
+    operationName: 'velogAlertSnapshot',
+    query: ALERT_SNAPSHOT_QUERY,
+    variables: {
+      notificationInput: {},
+      feedInput: {
+        offset: 0,
+        limit: CONFIG.FEED_LIMIT,
+      },
+    },
+  };
+}
+
+function getFollowingsGraphQLRequest(username, cursor = null) {
+  return {
+    operationName: 'getFollowings',
+    query: FOLLOWINGS_QUERY,
+    variables: {
+      input: {
+        username,
+        limit: CONFIG.FOLLOWINGS_PAGE_LIMIT,
+        ...(cursor ? { cursor } : {}),
+      },
+    },
+  };
+}
+
 function responseDetails(result) {
   return {
     status: result.status ?? 0,
@@ -50,11 +136,20 @@ function responseDetails(result) {
   };
 }
 
-function parseTransportResult(result) {
+function parseTransportPayload(result) {
   const rawText = result.bodyText ?? '';
   const details = responseDetails(result);
 
   console.info('[Velog Alert] GraphQL response', details);
+
+  if (result.bridgeError) {
+    throw new VelogApiError(
+      result.errorMessage || 'Velog 페이지 브리지 요청에 실패했습니다.',
+      result.errorCode || 'BRIDGE_REQUEST_FAILED',
+      null,
+      details
+    );
+  }
 
   if (!result.ok) {
     let code = 'HTTP_ERROR';
@@ -112,22 +207,19 @@ function parseTransportResult(result) {
     );
   }
 
-  if (!Array.isArray(payload?.data?.notifications)) {
+  if (!payload?.data || typeof payload.data !== 'object') {
     throw new VelogApiError(
-      'notifications 응답 형식이 예상과 다릅니다.',
+      'Velog GraphQL data가 없습니다.',
       'SCHEMA_CHANGED',
       null,
-      {
-        ...details,
-        dataKeys: payload?.data ? Object.keys(payload.data) : [],
-      }
+      details
     );
   }
 
-  return payload.data.notifications;
+  return payload.data;
 }
 
-async function requestGraphQLDirect() {
+async function requestGraphQLDirect(request) {
   let auth;
 
   try {
@@ -158,7 +250,7 @@ async function requestGraphQLDirect() {
         'Accept': 'application/json',
         'Authorization': `Bearer ${auth.token}`,
       },
-      body: JSON.stringify(getNotificationsGraphQLRequest()),
+      body: JSON.stringify(request),
     });
   } catch (error) {
     throw new VelogApiError(
@@ -206,16 +298,11 @@ async function requestGraphQLDirect() {
   };
 }
 
-export async function fetchNotifications() {
-  const result = await requestGraphQLDirect();
-  return parseTransportResult(result);
-}
-
-export async function fetchNotificationsWithTransport(transport) {
+async function requestGraphQLWithTransport(transport, request) {
   let result;
 
   try {
-    result = await transport(getNotificationsGraphQLRequest());
+    result = await transport(request);
   } catch (error) {
     if (error instanceof VelogApiError) throw error;
 
@@ -227,8 +314,120 @@ export async function fetchNotificationsWithTransport(transport) {
     );
   }
 
-  return parseTransportResult({
+  return {
     ...result,
     transport: result?.transport ?? 'velog-page',
-  });
+  };
+}
+
+function validateNotifications(data) {
+  if (!Array.isArray(data?.notifications)) {
+    throw new VelogApiError(
+      'notifications 응답 형식이 예상과 다릅니다.',
+      'SCHEMA_CHANGED',
+      null,
+      {
+        dataKeys: data ? Object.keys(data) : [],
+      }
+    );
+  }
+
+  return data.notifications;
+}
+
+function validateAlertSnapshot(data) {
+  if (!Array.isArray(data?.notifications) || !Array.isArray(data?.feedPosts)) {
+    throw new VelogApiError(
+      'Velog Alert snapshot 응답 형식이 예상과 다릅니다.',
+      'SCHEMA_CHANGED',
+      null,
+      {
+        dataKeys: data ? Object.keys(data) : [],
+      }
+    );
+  }
+
+  if (!data.currentUser?.username) {
+    throw new VelogApiError(
+      '현재 Velog 사용자를 확인할 수 없습니다.',
+      'UNAUTHORIZED'
+    );
+  }
+
+  return {
+    notifications: data.notifications,
+    feedPosts: data.feedPosts,
+    currentUser: data.currentUser,
+  };
+}
+
+async function fetchFollowingsPages(requestFn, username) {
+  const results = [];
+  let cursor = null;
+
+  for (let page = 0; page < CONFIG.MAX_FOLLOWINGS_PAGES; page += 1) {
+    const request = getFollowingsGraphQLRequest(username, cursor);
+    const transportResult = await requestFn(request);
+    const data = parseTransportPayload(transportResult);
+
+    if (!Array.isArray(data?.followings)) {
+      throw new VelogApiError(
+        'followings 응답 형식이 예상과 다릅니다.',
+        'SCHEMA_CHANGED',
+        null,
+        {
+          dataKeys: data ? Object.keys(data) : [],
+        }
+      );
+    }
+
+    results.push(...data.followings);
+
+    if (data.followings.length < CONFIG.FOLLOWINGS_PAGE_LIMIT) {
+      break;
+    }
+
+    const nextCursor = data.followings.at(-1)?.id;
+    if (!nextCursor || nextCursor === cursor) break;
+    cursor = nextCursor;
+  }
+
+  return results.slice(0, CONFIG.MAX_KNOWN_FOLLOWINGS);
+}
+
+export async function fetchNotifications() {
+  const result = await requestGraphQLDirect(getNotificationsGraphQLRequest());
+  return validateNotifications(parseTransportPayload(result));
+}
+
+export async function fetchNotificationsWithTransport(transport) {
+  const result = await requestGraphQLWithTransport(
+    transport,
+    getNotificationsGraphQLRequest()
+  );
+  return validateNotifications(parseTransportPayload(result));
+}
+
+export async function fetchAlertSnapshot() {
+  const result = await requestGraphQLDirect(getAlertSnapshotGraphQLRequest());
+  return validateAlertSnapshot(parseTransportPayload(result));
+}
+
+export async function fetchAlertSnapshotWithTransport(transport) {
+  const result = await requestGraphQLWithTransport(
+    transport,
+    getAlertSnapshotGraphQLRequest()
+  );
+  return validateAlertSnapshot(parseTransportPayload(result));
+}
+
+export async function fetchFollowings(username) {
+  return fetchFollowingsPages(requestGraphQLDirect, username);
+}
+
+export async function fetchFollowingsWithTransport(transport, username) {
+  return fetchFollowingsPages(
+    (request) => requestGraphQLWithTransport(transport, request),
+    username
+  );
 }

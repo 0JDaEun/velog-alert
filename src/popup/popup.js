@@ -16,6 +16,9 @@ const els = {
   commentReply: document.querySelector('#commentReply'),
   postLike: document.querySelector('#postLike'),
   follow: document.querySelector('#follow'),
+  followPost: document.querySelector('#followPost'),
+  feedFetchedCount: document.querySelector('#feedFetchedCount'),
+  feedNewCount: document.querySelector('#feedNewCount'),
   intervalMinutes: document.querySelector('#intervalMinutes'),
   saveState: document.querySelector('#saveState'),
   clearHistory: document.querySelector('#clearHistory'),
@@ -54,6 +57,7 @@ function iconFor(type) {
     commentReply: 'R',
     postLike: '♥',
     follow: '+',
+    followPost: 'P',
   }[type] ?? 'V';
 }
 
@@ -64,6 +68,7 @@ function readSettingsFromForm() {
     commentReply: els.commentReply.checked,
     postLike: els.postLike.checked,
     follow: els.follow.checked,
+    followPost: els.followPost.checked,
     intervalMinutes: Number(els.intervalMinutes.value),
   };
 }
@@ -175,6 +180,15 @@ async function render() {
   els.commentReply.checked = settings.commentReply !== false;
   els.postLike.checked = Boolean(settings.postLike);
   els.follow.checked = Boolean(settings.follow);
+  els.followPost.checked = settings.followPost !== false;
+
+  if (els.feedFetchedCount) {
+    els.feedFetchedCount.textContent = String(state.lastFeedFetchedCount ?? 0);
+  }
+
+  if (els.feedNewCount) {
+    els.feedNewCount.textContent = String(state.lastFeedNewCount ?? 0);
+  }
   els.intervalMinutes.value = String(settings.intervalMinutes ?? 1);
 
   if (!els.enabled.checked) {
@@ -207,9 +221,17 @@ async function render() {
 
     els.errorBox.classList.remove('hidden');
   } else if (state.lastSuccessAt) {
-    els.statusText.textContent = '정상 작동';
-    els.statusDot.className = 'status-dot ok';
-    els.errorBox.classList.add('hidden');
+    if (state.lastFeedError) {
+      els.statusText.textContent = '부분 작동';
+      els.statusDot.className = 'status-dot error';
+      els.errorBox.textContent =
+        `FOLLOW_FEED: ${state.lastFeedError.message || '팔로잉 피드 확인 실패'}`;
+      els.errorBox.classList.remove('hidden');
+    } else {
+      els.statusText.textContent = '정상 작동';
+      els.statusDot.className = 'status-dot ok';
+      els.errorBox.classList.add('hidden');
+    }
   } else {
     els.statusText.textContent = '초기화 중';
     els.statusDot.className = 'status-dot';
@@ -246,7 +268,7 @@ async function saveSettings() {
   await render();
 }
 
-for (const id of ['enabled', 'comment', 'commentReply', 'postLike', 'follow', 'intervalMinutes']) {
+for (const id of ['enabled', 'comment', 'commentReply', 'postLike', 'follow', 'followPost', 'intervalMinutes']) {
   els[id].addEventListener('change', saveSettings);
 }
 

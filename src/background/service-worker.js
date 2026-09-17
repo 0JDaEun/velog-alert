@@ -1,8 +1,10 @@
 import { CONFIG } from '../constants/config.js';
 import { getVelogAuthDiagnostics } from '../api/velog-auth.js';
 import {
-  fetchNotifications,
-  fetchNotificationsWithTransport,
+  fetchAlertSnapshot,
+  fetchAlertSnapshotWithTransport,
+  fetchFollowings,
+  fetchFollowingsWithTransport,
   VelogApiError,
 } from '../api/velog-api.js';
 import {
@@ -11,6 +13,8 @@ import {
 } from './velog-bridge.js';
 import { normalizeNotifications } from '../core/notification-parser.js';
 import { detectNewNotifications } from '../core/notification-detector.js';
+import { normalizeFeedPosts } from '../core/feed-post-parser.js';
+import { detectNewFeedPosts } from '../core/feed-post-detector.js';
 import {
   showNotifications,
   showTestNotification,
@@ -19,6 +23,8 @@ import {
   getState,
   saveState,
   mergeSeenIds,
+  mergeSeenFeedPostIds,
+  normalizeKnownFollowingUserIds,
   mergeHistory,
   getNotificationLink,
 } from '../storage/storage.js';
@@ -82,13 +88,14 @@ async function updateBadge(count) {
 
 let checkInProgress = null;
 
-async function fetchNotificationsResilient() {
+async function fetchSnapshotResilient() {
   try {
-    const notifications = await fetchNotifications();
+    const snapshot = await fetchAlertSnapshot();
 
     return {
-      notifications,
+      snapshot,
       transport: 'bearer-cookie',
+      followings: () => fetchFollowings(snapshot.currentUser.username),
     };
   } catch (directError) {
     console.warn('[Velog Alert] direct GraphQL failed, trying page bridge', {
@@ -98,13 +105,18 @@ async function fetchNotificationsResilient() {
     });
 
     try {
-      const notifications = await fetchNotificationsWithTransport(
+      const snapshot = await fetchAlertSnapshotWithTransport(
         requestViaVelogPage
       );
 
       return {
-        notifications,
+        snapshot,
         transport: 'velog-page',
+        followings: () =>
+          fetchFollowingsWithTransport(
+            requestViaVelogPage,
+            snapshot.currentUser.username
+          ),
         directError: {
           code: directError?.code ?? 'UNKNOWN',
           message: directError?.message ?? '',
@@ -127,7 +139,24 @@ async function fetchNotificationsResilient() {
   }
 }
 
-async function performCheck({ manual = false, trigger = manual ? 'manual' : 'unknown' } = {}) {
+function normalizeError(error, fallbackCode = 'UNKNOWN') {
+  return error instanceof VelogApiError
+    ? {
+        code: error.code,
+        message: error.message,
+        details: error.details ?? null,
+      }
+    : {
+        code: fallbackCode,
+        message: error?.message ?? '알 수 없는 오류',
+        details: null,
+      };
+}
+
+async function performCheck({
+  manual = false,
+  trigger = manual ? 'manual' : 'unknown',
+} = {}) {
   const startedAt = new Date().toISOString();
   const state = await getState();
 
@@ -147,76 +176,110 @@ async function performCheck({ manual = false, trigger = manual ? 'manual' : 'unk
   });
 
   try {
-    const fetchResult = await fetchNotificationsResilient();
-    const raw = fetchResult.notifications;
-    const normalized = normalizeNotifications(raw);
-    const detection = detectNewNotifications(normalized, state);
+    const fetchResult = await fetchSnapshotResilient();
+    const snapshot = fetchResult.snapshot;
 
-    if (detection.initializedNow) {
-      await saveState({
-        initialized: true,
-        seenNotificationIds: mergeSeenIds([], detection.allCurrentIds),
-        lastFetchedCount: normalized.length,
-        lastNewCount: 0,
-        lastSuccessAt: new Date().toISOString(),
-        lastTransport: fetchResult.transport,
-        lastError: null,
-      });
-
-      return {
-        initialized: true,
-        fetchedCount: normalized.length,
-        newCount: 0,
-        shownCount: 0,
-      };
-    }
-
-    const shown = await showNotifications(
-      detection.newNotifications,
-      state.settings
+    const normalizedNotifications = normalizeNotifications(
+      snapshot.notifications
+    );
+    const notificationDetection = detectNewNotifications(
+      normalizedNotifications,
+      state
     );
 
-    const nextBadgeCount = (state.unreadBadgeCount ?? 0) + shown.length;
+    const newNotifications = notificationDetection.initializedNow
+      ? []
+      : notificationDetection.newNotifications;
 
-    await saveState({
+    let feedDetection = null;
+    let feedError = null;
+    let normalizedFeedPosts = [];
+
+    try {
+      normalizedFeedPosts = normalizeFeedPosts(snapshot.feedPosts);
+      const followings = await fetchResult.followings();
+
+      feedDetection = detectNewFeedPosts(
+        normalizedFeedPosts,
+        state,
+        followings
+      );
+    } catch (error) {
+      feedError = normalizeError(error, 'FOLLOW_FEED_ERROR');
+      console.error('[Velog Alert] following feed check failed', error);
+    }
+
+    const newFeedPosts =
+      feedDetection && !feedDetection.initializedNow
+        ? feedDetection.newPosts
+        : [];
+
+    const allNewItems = [...newNotifications, ...newFeedPosts];
+
+    const [shownNotifications, shownFeedPosts] = await Promise.all([
+      showNotifications(newNotifications, state.settings),
+      showNotifications(newFeedPosts, state.settings),
+    ]);
+
+    const shownCount =
+      shownNotifications.length + shownFeedPosts.length;
+    const nextBadgeCount =
+      (state.unreadBadgeCount ?? 0) + shownCount;
+
+    const nextPatch = {
       initialized: true,
       seenNotificationIds: mergeSeenIds(
         state.seenNotificationIds,
-        detection.allCurrentIds
+        notificationDetection.allCurrentIds
       ),
       notificationHistory: mergeHistory(
         state.notificationHistory,
-        detection.newNotifications
+        allNewItems
       ),
       unreadBadgeCount: nextBadgeCount,
-      lastFetchedCount: normalized.length,
-      lastNewCount: detection.newNotifications.length,
+      lastFetchedCount: normalizedNotifications.length,
+      lastNewCount: allNewItems.length,
       lastSuccessAt: new Date().toISOString(),
       lastTransport: fetchResult.transport,
       lastError: null,
-    });
+    };
 
+    if (feedDetection) {
+      Object.assign(nextPatch, {
+        feedInitialized: true,
+        seenFeedPostIds: mergeSeenFeedPostIds(
+          state.seenFeedPostIds,
+          feedDetection.allCurrentIds
+        ),
+        knownFollowingUserIds: normalizeKnownFollowingUserIds(
+          feedDetection.currentFollowingUserIds
+        ),
+        lastFeedFetchedCount: normalizedFeedPosts.length,
+        lastFeedNewCount: newFeedPosts.length,
+        lastFeedSuccessAt: new Date().toISOString(),
+        lastFeedError: null,
+      });
+    } else if (feedError) {
+      Object.assign(nextPatch, {
+        lastFeedError: feedError,
+      });
+    }
+
+    await saveState(nextPatch);
     await updateBadge(nextBadgeCount);
 
     return {
-      initialized: false,
-      fetchedCount: normalized.length,
-      newCount: detection.newNotifications.length,
-      shownCount: shown.length,
+      initialized: notificationDetection.initializedNow,
+      feedInitialized: Boolean(feedDetection?.initializedNow),
+      fetchedCount: normalizedNotifications.length,
+      feedFetchedCount: normalizedFeedPosts.length,
+      newCount: allNewItems.length,
+      newFeedPostCount: newFeedPosts.length,
+      shownCount,
+      feedError,
     };
   } catch (error) {
-    const normalizedError =
-      error instanceof VelogApiError
-        ? {
-            code: error.code,
-            message: error.message,
-            details: error.details ?? null,
-          }
-        : {
-            code: 'UNKNOWN',
-            message: error?.message ?? '알 수 없는 오류',
-            details: null,
-          };
+    const normalizedError = normalizeError(error);
 
     await saveState({
       lastError: normalizedError,
@@ -309,6 +372,7 @@ chrome.runtime.onMessage.addListener((message, _sender, sendResponse) => {
       commentReply: Boolean(settings.commentReply),
       postLike: Boolean(settings.postLike),
       follow: Boolean(settings.follow),
+      followPost: Boolean(settings.followPost),
       intervalMinutes: normalizeInterval(settings.intervalMinutes),
     };
 
@@ -377,8 +441,6 @@ chrome.runtime.onMessage.addListener((message, _sender, sendResponse) => {
   return false;
 });
 
-// Important alarms should be verified whenever the worker starts.
-// This function is non-destructive when the existing alarm already matches.
 ensureAlarm().catch((error) => {
   console.error('[Velog Alert] failed to ensure alarm on worker start', error);
 });

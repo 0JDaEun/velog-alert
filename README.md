@@ -1,8 +1,10 @@
 # Velog Alert
 
-Velog에서 발생한 **댓글, 답글, 좋아요, 팔로우**를 주기적으로 확인하고 Chrome 데스크톱 알림으로 알려주는 Manifest V3 확장 프로그램입니다.
+Velog에서 발생한 **댓글, 답글, 좋아요, 팔로우, 팔로잉 사용자의 새 게시물**를 주기적으로 확인하고 Chrome 데스크톱 알림으로 알려주는 Manifest V3 확장 프로그램입니다.
 
-> Velog Alert는 Velog 공식 제품이 아닌 독립 프로젝트입니다.
+> Velog Alert는 Velog 공식 제품이 아닌 독립적인 오픈소스 프로젝트입니다.
+
+Repository: https://github.com/0JDaEun/velog-alert
 
 ## 주요 기능
 
@@ -19,6 +21,8 @@ Velog에서 발생한 **댓글, 답글, 좋아요, 팔로우**를 주기적으�
 - 중복 알림 방지
 - 최초 설치 시 기존 알림 일괄 발송 방지
 - Chrome 재시작 및 Manifest V3 Service Worker 재기동 대응
+- 팔로우한 Velog 사용자의 새 게시물 감지
+- 새 팔로우 시 최근 게시글 backfill 오탐 방지
 
 ## 동작 구조
 
@@ -62,6 +66,26 @@ Velog API 직접 인증 경로가 실패하는 경우를 대비해 Velog 페이�
 8. `지금 확인`을 한 번 눌러 현재 알림을 baseline으로 저장합니다.
 
 자세한 내용은 [`docs/INSTALLATION.md`](docs/INSTALLATION.md)를 참고하세요.
+
+## 팔로잉 새 글 감지
+
+v1.1.0부터 Velog의 로그인 사용자 전용 `feedPosts`를 함께 확인합니다.
+
+```text
+내가 팔로우한 사용자
+        ↓
+새 게시물 발행
+        ↓
+Velog Feed
+        ↓
+Velog Alert 신규 ID 비교
+        ↓
+Chrome Notification
+```
+
+새 사용자를 팔로우하면 Velog가 해당 사용자의 최근 게시물을 Feed에 추가할 수 있기 때문에,
+Velog Alert는 현재 팔로잉 목록도 함께 비교합니다. 이번 검사에서 새로 팔로우된 사용자의
+기존 게시물은 baseline으로 처리하고 새 글 알림으로 표시하지 않습니다.
 
 ## 최초 실행이 알림을 띄우지 않는 이유
 
@@ -158,7 +182,7 @@ velog-alert/
 
 ## 현재 상태
 
-**v1.0.4**
+**v1.1.0**
 
 2026-09-17 실제 Chrome 환경에서 다음 흐름을 확인했습니다.
 
@@ -169,7 +193,7 @@ Velog 로그인
 → Chrome 팝업 알림
 ```
 
-자동 테스트는 `npm test` 기준 12개 테스트를 통과합니다.
+자동 테스트는 `npm test` 기준 21개 테스트를 통과합니다.
 
 ## 문제 해결
 

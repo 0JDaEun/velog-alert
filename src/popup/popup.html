@@ -42,6 +42,10 @@
         <div class="status-meta auto-meta">
           <span>Velog 인증 <strong id="authStatus">확인 중</strong></span>
         </div>
+        <div class="status-meta feed-meta">
+          <span>팔로잉 피드 <strong id="feedFetchedCount">0</strong></span>
+          <span>새 글 <strong id="feedNewCount">0</strong></span>
+        </div>
       </section>
 
       <p id="errorBox" class="error hidden"></p>
@@ -84,10 +88,17 @@
           </label>
           <label class="setting-row">
             <span>
-              <strong>팔로우</strong>
-              <small>새 팔로워</small>
+              <strong>새 팔로워</strong>
+              <small>나를 새로 팔로우한 사용자</small>
             </span>
             <input id="follow" type="checkbox" />
+          </label>
+          <label class="setting-row">
+            <span>
+              <strong>팔로우 새 글</strong>
+              <small>내가 팔로우한 사용자의 새 게시물</small>
+            </span>
+            <input id="followPost" type="checkbox" />
           </label>
         </div>
 
@@ -122,7 +133,7 @@
         Velog 알림 페이지 열기 ↗
       </a>
 
-      <footer>Velog Alert v1.0.4 · Serverless Chrome Extension</footer>
+      <footer>Velog Alert v1.1.0 · Following Feed Alerts</footer>
     </main>
 
     <script type="module" src="./popup.js"></script>

@@ -443,3 +443,10 @@ footer {
   border-top: 1px solid #edf1f3;
   font-size: 11px;
 }
+
+.feed-meta {
+  margin-top: 6px;
+  padding-top: 8px;
+  border-top: 1px solid #edf1f3;
+  font-size: 11px;
+}

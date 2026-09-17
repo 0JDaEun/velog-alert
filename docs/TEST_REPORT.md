@@ -1,4 +1,4 @@
-# Test Report — v1.0.4
+# Test Report — v1.1.0
 
 Date: 2026-09-17
 
@@ -13,7 +13,7 @@ npm test
 Expected suite count:
 
 ```text
-12 tests
+21 tests
 ```
 
 Covered areas:
@@ -30,6 +30,14 @@ Covered areas:
 - alarm non-reset behavior
 - seen ID deduplication
 - history deduplication
+- following feed parser
+- following feed first-run baseline
+- existing-following new post detection
+- newly-followed user backfill suppression
+- following feed ordering
+- feed seen-ID deduplication
+- followings user-ID normalization
+- feedPosts / followings query presence
 
 ## Manual
 
@@ -40,6 +48,7 @@ Covered areas:
 - Velog GraphQL 알림 조회 정상
 - 신규 Velog 활동 Chrome Notification 정상
 - 자동 확인 정상
+- 팔로잉 새 글 actual E2E: 사용자 환경에서 최종 확인 필요
 
 ## Known Dependency
 

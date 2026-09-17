@@ -26,6 +26,8 @@ Velog가 반환한 알림 중 다음 정보가 처리될 수 있습니다.
 - 게시글 제목
 - 게시글 URL 정보
 - 알림 생성 시각
+- 사용자가 팔로우 중인 Velog 사용자 식별정보
+- 팔로잉 사용자의 공개 게시글 제목, URL, 발행 시각
 
 ## 2. 정보의 이용 목적
 
@@ -115,5 +117,4 @@ Velog GraphQL 서버에서 사용자의 알림 데이터를 조회하기 위해 
 
 프로젝트 GitHub 저장소의 Issue 기능을 통해 개인정보 또는 보안 관련 문의를 받을 수 있습니다.
 
-- GitHub: https://github.com/0JDaEun/velog-alert
-- Issues: https://github.com/0JDaEun/velog-alert/issues
+GitHub 저장소: https://github.com/0JDaEun/velog-alert

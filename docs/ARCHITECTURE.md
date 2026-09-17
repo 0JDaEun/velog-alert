@@ -72,9 +72,36 @@ runtime Port
 Service Worker
 ```
 
-목표:
+## v1.1.0 — Following Feed
 
-- 사용자에게 별도 Velog 탭을 띄우지 않는다.
-- 로그인 비밀번호/토큰을 확장 프로그램 저장소에 복사하지 않는다.
-- Service Worker origin과 Velog page origin의 차이로 발생하는 응답 문제를 회피한다.
-- 정상 동작 시 Popup `조회 경로`에 `Velog 페이지 브리지`를 표시한다.
+```text
+Alarm / Manual check
+       ↓
+Velog Alert Snapshot
+       ├─ notifications
+       ├─ currentUser
+       └─ feedPosts
+                ↓
+          followings query
+                ↓
+      Feed Post Detector
+       ├─ 기존 seen post → ignore
+       ├─ 새 팔로우 사용자의 backfill → baseline
+       └─ 기존 팔로잉 사용자의 unseen post → notify
+                ↓
+        Chrome Notification
+```
+
+상태는 기존 Velog Notification과 별도로 유지한다.
+
+```text
+feedInitialized
+seenFeedPostIds
+knownFollowingUserIds
+lastFeedFetchedCount
+lastFeedNewCount
+lastFeedSuccessAt
+lastFeedError
+```
+
+팔로잉 Feed 조회 실패는 일반 댓글/답글 알림 실패와 분리하여 처리한다.

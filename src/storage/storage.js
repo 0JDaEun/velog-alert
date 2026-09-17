@@ -5,6 +5,9 @@ const STATE_KEY = 'velogAlertState';
 const DEFAULT_STATE = {
   initialized: false,
   seenNotificationIds: [],
+  feedInitialized: false,
+  seenFeedPostIds: [],
+  knownFollowingUserIds: [],
   notificationLinks: {},
   notificationHistory: [],
   unreadBadgeCount: 0,
@@ -18,6 +21,10 @@ const DEFAULT_STATE = {
   alarmConfiguredAt: null,
   lastFetchedCount: 0,
   lastNewCount: 0,
+  lastFeedFetchedCount: 0,
+  lastFeedNewCount: 0,
+  lastFeedSuccessAt: null,
+  lastFeedError: null,
   settings: DEFAULT_SETTINGS,
 };
 
@@ -55,6 +62,20 @@ export async function saveState(patch) {
 
 export function mergeSeenIds(existing = [], current = []) {
   return [...new Set([...current, ...existing])].slice(0, CONFIG.MAX_SEEN_IDS);
+}
+
+export function mergeSeenFeedPostIds(existing = [], current = []) {
+  return [...new Set([...current, ...existing])].slice(
+    0,
+    CONFIG.MAX_SEEN_FEED_POST_IDS
+  );
+}
+
+export function normalizeKnownFollowingUserIds(userIds = []) {
+  return [...new Set(userIds.filter(Boolean))].slice(
+    0,
+    CONFIG.MAX_KNOWN_FOLLOWINGS
+  );
 }
 
 export function mergeHistory(existing = [], newNotifications = []) {

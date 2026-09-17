@@ -1,8 +1,8 @@
 {
   "manifest_version": 3,
   "name": "Velog Alert",
-  "version": "1.0.4",
-  "description": "Velog의 새 댓글·답글·좋아요·팔로우를 감지해 Chrome 알림으로 알려줍니다.",
+  "version": "1.1.0",
+  "description": "Velog의 새 댓글·답글·좋아요·팔로우와 팔로잉 새 글을 감지해 Chrome 알림으로 알려줍니다.",
   "permissions": [
     "alarms",
     "cookies",
