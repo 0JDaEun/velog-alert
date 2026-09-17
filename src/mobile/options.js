@@ -4,6 +4,7 @@ import {
   getMobileState,
   listMobileDevices,
   saveMobileState,
+  sendMobileTestPush,
 } from "./push-client.js";
 
 const $ = (selector) => document.querySelector(selector);
@@ -17,6 +18,7 @@ const els = {
   mobileUrl: $("#mobileUrl"),
   devices: $("#devices"),
   refreshDevices: $("#refreshDevices"),
+  testMobilePush: $("#testMobilePush"),
   relayBase: $("#relayBase"),
   saveRelay: $("#saveRelay"),
   status: $("#status"),
@@ -85,6 +87,27 @@ els.createCode.addEventListener("click", async () => {
 });
 
 els.refreshDevices.addEventListener("click", renderDevices);
+
+els.testMobilePush.addEventListener("click", async () => {
+  els.testMobilePush.disabled = true;
+
+  try {
+    const result = await sendMobileTestPush();
+    const delivered = Number(result?.delivered ?? 0);
+
+    if (result?.skipped) {
+      showStatus("휴대폰 알림을 먼저 켜 주세요.");
+    } else if (delivered > 0) {
+      showStatus(`테스트 알림을 ${delivered}개 기기로 보냈습니다.`);
+    } else {
+      showStatus("연결된 활성 기기가 없습니다.");
+    }
+  } catch (error) {
+    showStatus(`테스트 알림 실패: ${error.message}`);
+  } finally {
+    els.testMobilePush.disabled = false;
+  }
+});
 
 els.saveRelay.addEventListener("click", async () => {
   const value = els.relayBase.value.trim().replace(/\/$/, "");
