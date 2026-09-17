@@ -1,0 +1,130 @@
+<!doctype html>
+<html lang="ko">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Velog Alert</title>
+    <link rel="stylesheet" href="./popup.css" />
+  </head>
+  <body>
+    <main class="panel">
+      <header class="header">
+        <div class="brand">
+          <img src="../../assets/icon48.png" alt="" class="brand-icon" />
+          <div>
+            <p class="eyebrow">VELOG ALERT</p>
+            <h1>알림 센터</h1>
+          </div>
+        </div>
+        <span id="statusDot" class="status-dot" title="상태"></span>
+      </header>
+
+      <section class="status-card">
+        <div class="status-main">
+          <div>
+            <span class="label">현재 상태</span>
+            <strong id="statusText">확인 중</strong>
+          </div>
+          <label class="switch" title="Velog Alert 켜기/끄기">
+            <input id="enabled" type="checkbox" />
+            <span class="slider"></span>
+          </label>
+        </div>
+        <div class="status-meta">
+          <span>최근 확인 <strong id="lastCheck">-</strong></span>
+          <span>조회 <strong id="fetchedCount">0</strong></span>
+          <span>신규 <strong id="newCount">0</strong></span>
+        </div>
+        <div class="status-meta auto-meta">
+          <span>마지막 자동 <strong id="lastAutoCheck">-</strong></span>
+          <span>다음 자동 <strong id="nextAutoCheck">-</strong></span>
+        </div>
+        <div class="status-meta auto-meta">
+          <span>Velog 인증 <strong id="authStatus">확인 중</strong></span>
+        </div>
+      </section>
+
+      <p id="errorBox" class="error hidden"></p>
+
+      <div class="button-row">
+        <button id="checkNow" class="primary">지금 확인</button>
+        <button id="testNotification" class="secondary">테스트 알림</button>
+      </div>
+
+      <section class="section">
+        <div class="section-title-row">
+          <div>
+            <p class="section-kicker">FILTER</p>
+            <h2>알림 종류</h2>
+          </div>
+          <span id="saveState" class="save-state">자동 저장</span>
+        </div>
+
+        <div class="settings-card">
+          <label class="setting-row">
+            <span>
+              <strong>댓글</strong>
+              <small>내 게시글에 새 댓글</small>
+            </span>
+            <input id="comment" type="checkbox" />
+          </label>
+          <label class="setting-row">
+            <span>
+              <strong>답글</strong>
+              <small>댓글에 새 답글</small>
+            </span>
+            <input id="commentReply" type="checkbox" />
+          </label>
+          <label class="setting-row">
+            <span>
+              <strong>좋아요</strong>
+              <small>게시글 좋아요</small>
+            </span>
+            <input id="postLike" type="checkbox" />
+          </label>
+          <label class="setting-row">
+            <span>
+              <strong>팔로우</strong>
+              <small>새 팔로워</small>
+            </span>
+            <input id="follow" type="checkbox" />
+          </label>
+        </div>
+
+        <label class="interval-row">
+          <span>
+            <strong>확인 주기</strong>
+            <small>Chrome이 백그라운드에서 확인합니다.</small>
+          </span>
+          <select id="intervalMinutes">
+            <option value="1">1분</option>
+            <option value="5">5분</option>
+            <option value="10">10분</option>
+            <option value="30">30분</option>
+          </select>
+        </label>
+      </section>
+
+      <section class="section history-section">
+        <div class="section-title-row">
+          <div>
+            <p class="section-kicker">HISTORY</p>
+            <h2>최근 감지</h2>
+          </div>
+          <button id="clearHistory" class="text-button">기록 지우기</button>
+        </div>
+
+        <div id="historyList" class="history-list"></div>
+        <p id="historyEmpty" class="empty">아직 새로 감지된 알림이 없습니다.</p>
+      </section>
+
+      <a class="velog-link" href="https://velog.io/notifications" target="_blank">
+        Velog 알림 페이지 열기 ↗
+      </a>
+
+      <footer>Velog Alert v1.0.4 · Serverless Chrome Extension</footer>
+    </main>
+
+    <script type="module" src="./popup.js"></script>
+  </body>
+</html>

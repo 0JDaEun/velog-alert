@@ -1,0 +1,51 @@
+{
+  "manifest_version": 3,
+  "name": "Velog Alert",
+  "version": "1.0.4",
+  "description": "Velog의 새 댓글·답글·좋아요·팔로우를 감지해 Chrome 알림으로 알려줍니다.",
+  "permissions": [
+    "alarms",
+    "cookies",
+    "notifications",
+    "offscreen",
+    "storage"
+  ],
+  "host_permissions": [
+    "https://velog.io/*",
+    "https://v3.velog.io/*"
+  ],
+  "background": {
+    "service_worker": "src/background/service-worker.js",
+    "type": "module"
+  },
+  "action": {
+    "default_popup": "src/popup/popup.html",
+    "default_title": "Velog Alert",
+    "default_icon": {
+      "16": "assets/icon16.png",
+      "48": "assets/icon48.png",
+      "128": "assets/icon128.png"
+    }
+  },
+  "icons": {
+    "16": "assets/icon16.png",
+    "48": "assets/icon48.png",
+    "128": "assets/icon128.png"
+  },
+  "minimum_chrome_version": "109",
+  "content_scripts": [
+    {
+      "matches": [
+        "https://velog.io/*"
+      ],
+      "js": [
+        "src/bridge/velog-page-bridge.js"
+      ],
+      "all_frames": true,
+      "run_at": "document_idle"
+    }
+  ],
+  "content_security_policy": {
+    "extension_pages": "script-src 'self'; object-src 'self'; frame-src https://velog.io"
+  }
+}
