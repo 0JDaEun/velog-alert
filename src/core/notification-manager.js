@@ -1,3 +1,4 @@
+import { forwardToMobile } from '../mobile/ntfy-client.js';
 import { rememberNotificationLink } from '../storage/storage.js';
 
 export function shouldNotify(notification, settings) {
@@ -21,6 +22,15 @@ export async function showNotifications(notifications, settings) {
     });
 
     await rememberNotificationLink(chromeNotificationId, notification.url);
+
+    try {
+      await forwardToMobile(notification);
+    } catch (error) {
+      console.warn('[Velog Alert] mobile push failed', {
+        message: error?.message ?? 'unknown error',
+      });
+    }
+
     shown.push(notification);
   }
 
