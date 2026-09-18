@@ -297,3 +297,20 @@ export async function syncCloudSettings(settings = {}) {
 
   return payload;
 }
+
+
+export async function checkRelayHealth(relayBase = null) {
+  const state = await getMobileState();
+  const base = (relayBase || state.relayBase || DEFAULT_RELAY_BASE).replace(/\/$/, "");
+
+  const response = await fetch(`${base}/api/health`, {
+    cache: "no-store",
+  });
+
+  const payload = await response.json().catch(() => ({}));
+  if (!response.ok || payload?.ok !== true) {
+    throw new Error(payload.error || `RELAY_HEALTH_HTTP_${response.status}`);
+  }
+
+  return payload;
+}
