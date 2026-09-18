@@ -23,6 +23,10 @@
   <a href="https://github.com/0JDaEun/velog-alert">Repository</a>
 </p>
 
+<p align="center">
+  📖 <a href="https://velog.io/@dandonedan/Velog-%EC%95%8C%EB%A6%BC-%EC%99%9C-%EC%97%86%EC%A7%80-%EC%A7%81%EC%A0%91-%EB%A7%8C%EB%93%A4%EC%96%B4%EB%B3%B8-Chrome-Extension%EB%B6%80%ED%84%B0-%EB%AA%A8%EB%B0%94%EC%9D%BC-%EC%95%8C%EB%A6%BC%EA%B9%8C%EC%A7%80-%EB%A0%88%ED%8F%AC-%EA%B3%B5%EC%9C%A0"><strong>Velog Alert 개발기 읽기</strong></a>
+</p>
+
 > Velog Alert는 Velog 공식 제품이 아닌 독립적인 오픈소스 프로젝트입니다.  
 > Velog 공식 Webhook이 아니라 **약 30초 polling 기반의 준실시간 알림**을 제공합니다.
 
