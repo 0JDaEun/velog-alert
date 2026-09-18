@@ -36,3 +36,11 @@ button { border: 0; border-radius: 11px; padding: 12px 14px; font: inherit; font
 .guide-block li + li { margin-top: 2px; }
 .tip { margin: 12px 0 0; padding: 11px 12px; border-radius: 10px; background: #fff9e8; color: #76632e; font-size: 12px; line-height: 1.55; }
 .hidden { display: none !important; }
+
+.cloud-auth-status { display: flex; gap: 10px; align-items: flex-start; margin: 14px 0; padding: 13px; border-radius: 12px; background: #f7f9fa; }
+.cloud-auth-status small { display: block; margin-top: 4px; color: #6c787e; line-height: 1.45; }
+.status-dot { width: 10px; height: 10px; margin-top: 4px; flex: 0 0 10px; border-radius: 50%; background: #aab5b1; }
+.status-dot.ok { background: #20c997; }
+.status-dot.warn { background: #f0a43c; }
+.status-dot.error { background: #e15d5d; }
+.danger { width: 100%; margin-top: 9px; background: #fff0f0; color: #bd3f3f; }
