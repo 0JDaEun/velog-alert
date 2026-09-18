@@ -6,6 +6,9 @@ import {
   saveMobileState,
   sendMobileTestPush,
   setAlwaysOnFollowWatchEnabled,
+  enableCloudAuth,
+  getCloudAuthStatus,
+  disableCloudAuth,
 } from "./push-client.js";
 
 const $ = (selector) => document.querySelector(selector);
@@ -23,6 +26,11 @@ const els = {
   relayBase: $("#relayBase"),
   saveRelay: $("#saveRelay"),
   status: $("#status"),
+  cloudAuthDot: $("#cloudAuthDot"),
+  cloudAuthTitle: $("#cloudAuthTitle"),
+  cloudAuthMessage: $("#cloudAuthMessage"),
+  enableCloudAuth: $("#enableCloudAuth"),
+  disableCloudAuth: $("#disableCloudAuth"),
 };
 
 function showStatus(message) {
@@ -36,6 +44,52 @@ async function renderState() {
   els.enabled.checked = state.enabled;
   els.relayBase.value = state.relayBase || DEFAULT_RELAY_BASE;
   els.mobileUrl.textContent = state.relayBase || DEFAULT_RELAY_BASE;
+}
+
+async function renderCloudAuthStatus() {
+  try {
+    const auth = await getCloudAuthStatus();
+
+    if (auth.enabled && auth.status === "active") {
+      els.cloudAuthDot.className = "status-dot ok";
+      els.cloudAuthTitle.textContent = "Always-on 활성화됨";
+      const last = auth.lastSuccessAt
+        ? new Date(auth.lastSuccessAt).toLocaleString()
+        : "아직 없음";
+      els.cloudAuthMessage.textContent = `${auth.username || "Velog"} · 마지막 Cloud 확인 ${last}`;
+      els.enableCloudAuth.textContent = "Velog 인증 갱신";
+      els.disableCloudAuth.classList.remove("hidden");
+      return;
+    }
+
+    if (auth.status === "expired") {
+      els.cloudAuthDot.className = "status-dot warn";
+      els.cloudAuthTitle.textContent = "Velog 인증 갱신 필요";
+      els.cloudAuthMessage.textContent = "PC에서 Velog에 로그인한 뒤 인증 갱신을 눌러 주세요.";
+      els.enableCloudAuth.textContent = "Velog 인증 다시 연결";
+      els.disableCloudAuth.classList.remove("hidden");
+      return;
+    }
+
+    if (auth.status === "error") {
+      els.cloudAuthDot.className = "status-dot error";
+      els.cloudAuthTitle.textContent = "Cloud 확인 오류";
+      els.cloudAuthMessage.textContent = "Velog 인증을 다시 연결해 주세요.";
+      els.enableCloudAuth.textContent = "Velog 인증 다시 연결";
+      els.disableCloudAuth.classList.remove("hidden");
+      return;
+    }
+
+    els.cloudAuthDot.className = "status-dot";
+    els.cloudAuthTitle.textContent = "Always-on 비활성화";
+    els.cloudAuthMessage.textContent = "PC가 꺼져 있을 때는 현재 개인 알림을 확인하지 않습니다.";
+    els.enableCloudAuth.textContent = "Always-on 전체 알림 활성화";
+    els.disableCloudAuth.classList.add("hidden");
+  } catch (error) {
+    els.cloudAuthDot.className = "status-dot error";
+    els.cloudAuthTitle.textContent = "상태 확인 실패";
+    els.cloudAuthMessage.textContent = error.message;
+  }
 }
 
 async function renderDevices() {
@@ -117,6 +171,42 @@ els.testMobilePush.addEventListener("click", async () => {
   }
 });
 
+els.enableCloudAuth.addEventListener("click", async () => {
+  const accepted = confirm(
+    "PC가 꺼져 있어도 모든 Velog 알림을 받기 위해 현재 Velog access/refresh token을 암호화하여 Push 서버에 저장합니다. Velog 비밀번호는 저장하지 않습니다. 계속할까요?"
+  );
+  if (!accepted) return;
+
+  els.enableCloudAuth.disabled = true;
+  try {
+    const result = await enableCloudAuth();
+    showStatus(`Always-on 활성화 완료: ${result.username}`);
+    await renderCloudAuthStatus();
+  } catch (error) {
+    showStatus(`Always-on 활성화 실패: ${error.message}`);
+  } finally {
+    els.enableCloudAuth.disabled = false;
+  }
+});
+
+els.disableCloudAuth.addEventListener("click", async () => {
+  const accepted = confirm(
+    "Cloud에 저장된 Velog 인증정보와 개인 알림 기준점을 삭제할까요?"
+  );
+  if (!accepted) return;
+
+  els.disableCloudAuth.disabled = true;
+  try {
+    await disableCloudAuth();
+    showStatus("Always-on 인증정보를 삭제했습니다.");
+    await renderCloudAuthStatus();
+  } catch (error) {
+    showStatus(`Always-on 해제 실패: ${error.message}`);
+  } finally {
+    els.disableCloudAuth.disabled = false;
+  }
+});
+
 els.saveRelay.addEventListener("click", async () => {
   const value = els.relayBase.value.trim().replace(/\/$/, "");
 
@@ -133,3 +223,4 @@ els.saveRelay.addEventListener("click", async () => {
 
 await renderState();
 await renderDevices();
+await renderCloudAuthStatus();
