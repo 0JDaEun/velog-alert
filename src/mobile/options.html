@@ -95,6 +95,27 @@
       <button id="testMobilePush" class="secondary test-button">휴대폰 테스트 알림 보내기</button>
     </section>
 
+    <section id="cloudAuthCard" class="card">
+      <span class="step">4</span>
+      <h2>PC가 꺼져 있어도 모든 알림 받기</h2>
+      <p>
+        댓글, 답글, 좋아요, 새 팔로워까지 Cloud에서 약 1분마다 확인합니다.
+        이 기능을 켜면 현재 Velog access/refresh token을 암호화하여 Push 서버에 저장합니다.
+        Velog 비밀번호는 전송하지 않습니다.
+      </p>
+
+      <div class="cloud-auth-status">
+        <span id="cloudAuthDot" class="status-dot"></span>
+        <div>
+          <strong id="cloudAuthTitle">상태 확인 중</strong>
+          <small id="cloudAuthMessage">Cloud 인증 상태를 확인하고 있습니다.</small>
+        </div>
+      </div>
+
+      <button id="enableCloudAuth" class="primary">Always-on 전체 알림 활성화</button>
+      <button id="disableCloudAuth" class="danger hidden">Always-on 해제 및 인증 삭제</button>
+    </section>
+
     <section class="dev card">
       <h2>개발 설정</h2>
       <label>
