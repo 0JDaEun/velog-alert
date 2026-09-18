@@ -43,7 +43,9 @@ async function renderState() {
   const state = await getMobileState();
   els.enabled.checked = state.enabled;
   els.relayBase.value = state.relayBase || DEFAULT_RELAY_BASE;
-  els.mobileUrl.textContent = state.relayBase || DEFAULT_RELAY_BASE;
+  const relay = state.relayBase || DEFAULT_RELAY_BASE;
+  els.mobileUrl.textContent = relay;
+  els.mobileUrl.href = relay;
 }
 
 async function renderCloudAuthStatus() {
@@ -217,6 +219,7 @@ els.saveRelay.addEventListener("click", async () => {
 
   await saveMobileState({ relayBase: value });
   els.mobileUrl.textContent = value;
+  els.mobileUrl.href = value;
   showStatus("Relay URL을 저장했습니다.");
   await renderDevices();
 });
