@@ -9,7 +9,9 @@
     "types": "wrangler types",
     "check": "tsc --noEmit",
     "setup": "node scripts/setup.mjs",
-    "free-check": "node scripts/free-check.mjs"
+    "free-check": "node scripts/free-check.mjs",
+    "dry-run": "wrangler deploy --dry-run --outdir .wrangler/dry-run",
+    "validate": "npm run free-check && npm run check && npm run dry-run"
   },
   "dependencies": {
     "web-push": "^3.6.7"
