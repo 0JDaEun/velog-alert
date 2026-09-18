@@ -296,3 +296,27 @@ Android / iPhone PWA
 따라서 **팔로잉 사용자의 새 게시물**은 PC가 꺼져 있어도 받을 수 있습니다.
 
 댓글, 답글, 좋아요, 새 팔로워는 Velog 개인 인증이 필요한 알림이므로 현재 버전에서는 PC Chrome Extension이 실행 중일 때 모바일로 전달됩니다. 서버에는 Velog 인증 토큰이나 쿠키를 저장하지 않습니다.
+
+
+## v2.1 Self-host Cloudflare
+
+공개 배포 버전은 **사용자마다 자신의 Cloudflare Free 계정에 Relay를 배포**하는 방식을 권장합니다.
+
+```text
+각 사용자
+Chrome Extension
+    ↓
+본인 Cloudflare Worker / Durable Object
+    ↓ 약 30초
+Velog
+    ↓
+본인 Android / iPhone PWA
+```
+
+이 방식에서는 프로젝트 개발자 `0JDaEun`의 서버 비용이나 quota를 여러 사용자가 공유하지 않습니다.
+
+PC가 켜져 있으면 Chrome Extension이 약 30초 간격으로 확인하고, PC가 꺼지면 개인 Cloudflare backend가 약 30초 polling으로 대신 확인합니다.
+
+Cloudflare 설치: [docs/CLOUDFLARE_SELF_HOST.md](docs/CLOUDFLARE_SELF_HOST.md)
+
+Developer: [0JDaEun](https://github.com/0JDaEun)
