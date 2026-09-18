@@ -87,6 +87,16 @@ async function handleApi(request: Request, env: Env) {
     return json({ ok: true });
   }
 
+  if (request.method === "GET" && url.pathname === "/api/health") {
+    return json({
+      ok: true,
+      service: "velog-alert",
+      version: "2.1.0",
+      backend: "cloudflare-self-host",
+      pollIntervalSeconds: 30,
+    });
+  }
+
   if (request.method === "GET" && url.pathname === "/api/push/config") {
     return json({ vapidPublicKey: env.VAPID_PUBLIC_KEY });
   }
