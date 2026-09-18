@@ -10,8 +10,8 @@ self.addEventListener("push", (event) => {
   event.waitUntil(
     self.registration.showNotification(payload.title || "Velog Alert", {
       body: payload.body || "새 Velog 활동이 있습니다.",
-      icon: "/icon192.png",
-      badge: "/icon192.png",
+      icon: "/icon192-v210.png",
+      badge: "/icon192-v210.png",
       tag: payload.eventKey || undefined,
       renotify: false,
       data: {
