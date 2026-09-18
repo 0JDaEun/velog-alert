@@ -56,7 +56,7 @@ PC가 꺼진 상태에서도 약 30초 단위로 알림을 받으려면 자신�
 git clone https://github.com/0JDaEun/velog-alert.git
 cd velog-alert/cloudflare
 npm install
-npx wrangler login --use-keyring
+npx wrangler login --device --use-keyring
 npm run setup
 ```
 
