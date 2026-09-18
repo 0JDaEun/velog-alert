@@ -46,6 +46,28 @@ export type GlobalPostState = {
   updatedAt: string;
 };
 
+export type CloudAuthRecord = {
+  extensionHash: string;
+  encryptedTokens: {
+    iv: string;
+    ciphertext: string;
+  };
+  username: string;
+  enabled: boolean;
+  status: "active" | "expired" | "error";
+  createdAt: string;
+  updatedAt: string;
+  lastSuccessAt: string | null;
+  lastErrorAt: string | null;
+};
+
+export type CloudNotificationState = {
+  initialized: boolean;
+  latestCreatedAt: string | null;
+  idsAtLatest: string[];
+  updatedAt: string;
+};
+
 function isProductionDeploy() {
   return Netlify.context?.deploy?.context === "production";
 }
@@ -64,6 +86,7 @@ export const tokenStore = () => blobStore("velog-alert-device-tokens");
 export const dedupStore = () => blobStore("velog-alert-dedup");
 export const rateStore = () => blobStore("velog-alert-rate");
 export const followWatchStore = () => blobStore("velog-alert-follow-watch");
+export const cloudAuthStore = () => blobStore("velog-alert-cloud-auth");
 
 export async function getExtensionRecord(extensionHash: string) {
   return deviceStore().get(`extension:${extensionHash}`, {
