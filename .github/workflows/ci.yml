@@ -39,3 +39,24 @@ jobs:
       - run: npm run free-check
       - run: npm run check
       - run: npm run dry-run
+
+  package-extension:
+    name: package-extension
+    needs: [extension, cloudflare]
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Build extension ZIP
+        run: |
+          mkdir -p release/Velog_Alert_v2.1.0_EXTENSION
+          cp manifest.json release/Velog_Alert_v2.1.0_EXTENSION/
+          cp -R assets release/Velog_Alert_v2.1.0_EXTENSION/assets
+          cp -R src release/Velog_Alert_v2.1.0_EXTENSION/src
+          cd release/Velog_Alert_v2.1.0_EXTENSION
+          zip -r ../Velog_Alert_v2.1.0_EXTENSION.zip .
+      - name: Upload extension ZIP
+        uses: actions/upload-artifact@v4
+        with:
+          name: Velog_Alert_v2.1.0_EXTENSION
+          path: release/Velog_Alert_v2.1.0_EXTENSION.zip
+          if-no-files-found: error
