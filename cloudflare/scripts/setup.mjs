@@ -3,6 +3,8 @@ import { spawnSync } from "node:child_process";
 import { writeFileSync, rmSync } from "node:fs";
 import { createInterface } from "node:readline/promises";
 import { stdin as input, stdout as output } from "node:process";
+import { dirname, resolve } from "node:path";
+import { fileURLToPath } from "node:url";
 import webpush from "web-push";
 
 function base64Url(bytes) {
@@ -14,12 +16,21 @@ function base64Url(bytes) {
 }
 
 const rl = createInterface({ input, output });
+const scriptDir = dirname(fileURLToPath(import.meta.url));
+const wranglerBin = resolve(
+  scriptDir,
+  "../node_modules/wrangler/bin/wrangler.js",
+);
 
 function run(command, args, options = {}) {
   return spawnSync(command, args, {
     encoding: "utf8",
     ...options,
   });
+}
+
+function runWrangler(args, options = {}) {
+  return run(process.execPath, [wranglerBin, ...args], options);
 }
 
 function assertNodeVersion() {
@@ -35,14 +46,15 @@ try {
   console.log("이 스크립트는 AUTH_KEY와 VAPID 키를 로컬에서 생성하고 Cloudflare Secret으로 업로드합니다.");
   console.log("Velog 비밀번호나 Velog 토큰은 이 단계에서 사용하지 않습니다.\n");
 
-  const npx = process.platform === "win32" ? "npx.cmd" : "npx";
-
   console.log("Cloudflare 로그인 상태를 확인합니다...");
-  const whoami = run(npx, ["wrangler", "whoami"], { stdio: "pipe" });
+  const whoami = runWrangler(["whoami"], { stdio: "pipe" });
 
   if (whoami.status !== 0) {
     console.error(whoami.stdout || "");
     console.error(whoami.stderr || "");
+    if (whoami.error) {
+      console.error(whoami.error);
+    }
     throw new Error(
       "Cloudflare 로그인이 필요합니다. 먼저 'npx wrangler login --device --use-keyring'을 실행한 뒤 다시 시도하세요."
     );
@@ -72,9 +84,8 @@ try {
   writeFileSync(tempFile, JSON.stringify(secrets, null, 2), { mode: 0o600 });
 
   console.log("\n실제 업로드 전에 Wrangler dry-run을 실행합니다...");
-  const dryRun = run(
-    npx,
-    ["wrangler", "deploy", "--dry-run", "--secrets-file", tempFile, "--outdir", ".wrangler/setup-dry-run"],
+  const dryRun = runWrangler(
+    ["deploy", "--dry-run", "--secrets-file", tempFile, "--outdir", ".wrangler/setup-dry-run"],
     { stdio: "inherit" },
   );
 
@@ -84,9 +95,8 @@ try {
   }
 
   console.log("\nCloudflare에 Worker와 Secret을 배포합니다...");
-  const result = run(
-    npx,
-    ["wrangler", "deploy", "--secrets-file", tempFile],
+  const result = runWrangler(
+    ["deploy", "--secrets-file", tempFile],
     { stdio: "inherit" },
   );
 
