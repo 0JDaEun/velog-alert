@@ -33,6 +33,19 @@ export type PairingRecord = {
   attempts: number;
 };
 
+export type FollowWatchRecord = {
+  extensionHash: string;
+  enabled: boolean;
+  followingUsernames: string[];
+  updatedAt: string;
+};
+
+export type GlobalPostState = {
+  initialized: boolean;
+  seenPostIds: string[];
+  updatedAt: string;
+};
+
 function isProductionDeploy() {
   return Netlify.context?.deploy?.context === "production";
 }
@@ -50,6 +63,7 @@ export const deviceStore = () => blobStore("velog-alert-devices");
 export const tokenStore = () => blobStore("velog-alert-device-tokens");
 export const dedupStore = () => blobStore("velog-alert-dedup");
 export const rateStore = () => blobStore("velog-alert-rate");
+export const followWatchStore = () => blobStore("velog-alert-follow-watch");
 
 export async function getExtensionRecord(extensionHash: string) {
   return deviceStore().get(`extension:${extensionHash}`, {
@@ -59,4 +73,14 @@ export async function getExtensionRecord(extensionHash: string) {
 
 export async function saveExtensionRecord(record: ExtensionRecord) {
   await deviceStore().setJSON(`extension:${record.extensionHash}`, record);
+}
+
+export async function getFollowWatchRecord(extensionHash: string) {
+  return followWatchStore().get(`watch:${extensionHash}`, {
+    type: "json",
+  }) as Promise<FollowWatchRecord | null>;
+}
+
+export async function saveFollowWatchRecord(record: FollowWatchRecord) {
+  await followWatchStore().setJSON(`watch:${record.extensionHash}`, record);
 }
