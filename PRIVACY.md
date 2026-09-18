@@ -132,3 +132,14 @@ Velog GraphQL 서버에서 사용자의 알림 데이터를 조회하기 위해 
 프로젝트 GitHub 저장소의 Issue 기능을 통해 개인정보 또는 보안 관련 문의를 받을 수 있습니다.
 
 GitHub 저장소: https://github.com/0JDaEun/velog-alert
+
+
+## Always-on 팔로잉 새 글 확인
+
+사용자가 휴대폰 알림을 활성화하면 PC가 꺼진 상태에서도 팔로잉 사용자의 공개 새 게시물을 확인하기 위해 다음 최소 정보가 Push Relay에 저장될 수 있습니다.
+
+- 사용자가 팔로우 중인 Velog 사용자의 username 목록
+- 공개 게시물의 ID, 제목, URL, 발행 시각
+- 중복 알림 방지를 위한 최근 공개 게시물 ID
+
+이 기능은 공개 게시물 조회만 사용하며 Velog `access_token`, `refresh_token`, 쿠키 또는 비밀번호를 서버에 저장하지 않습니다. 댓글·답글·좋아요·새 팔로워처럼 개인 인증이 필요한 알림은 PC Extension이 실행 중일 때만 모바일로 전달됩니다.
