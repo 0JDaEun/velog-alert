@@ -10,7 +10,7 @@ cd velog-alert
 git checkout feat/cloudflare-free-first-v3
 cd cloudflare
 npm install
-npx wrangler login --use-keyring
+npx wrangler login --device --use-keyring
 npm run setup
 ```
 
