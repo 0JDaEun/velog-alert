@@ -1,3 +1,4 @@
+import { getState } from "../storage/storage.js";
 import {
   DEFAULT_RELAY_BASE,
   createPairingCode,
@@ -140,15 +141,27 @@ async function renderDevices() {
 }
 
 els.enabled.addEventListener("change", async () => {
-  await saveMobileState({ enabled: els.enabled.checked });
+  const enabled = els.enabled.checked;
+  await saveMobileState({ enabled });
 
   try {
-    await setAlwaysOnFollowWatchEnabled(els.enabled.checked);
+    await setAlwaysOnFollowWatchEnabled(enabled);
   } catch (error) {
     console.warn("[Velog Alert] always-on toggle sync failed", error);
   }
 
-  showStatus(els.enabled.checked ? "휴대폰 알림을 켰습니다." : "휴대폰 알림을 껐습니다.");
+  if (!enabled) {
+    try {
+      await disableCloudAuth();
+      await renderCloudAuthStatus();
+      showStatus("휴대폰 알림을 끄고 Always-on 인증정보도 삭제했습니다.");
+      return;
+    } catch (error) {
+      console.warn("[Velog Alert] cloud auth disable failed", error);
+    }
+  }
+
+  showStatus(enabled ? "휴대폰 알림을 켰습니다." : "휴대폰 알림을 껐습니다.");
 });
 
 els.createCode.addEventListener("click", async () => {
@@ -200,7 +213,8 @@ els.enableCloudAuth.addEventListener("click", async () => {
 
   els.enableCloudAuth.disabled = true;
   try {
-    const result = await enableCloudAuth();
+    const extensionState = await getState();
+    const result = await enableCloudAuth(extensionState.settings);
     showStatus(`Always-on 활성화 완료: ${result.username}`);
     await renderCloudAuthStatus();
   } catch (error) {
