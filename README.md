@@ -275,6 +275,14 @@ README의 코드는 예시입니다. 실제로는 Extension에 표시되는 본�
 
 > iPhone Web Push는 일반 Safari 탭이 아니라 **홈 화면에 설치한 PWA**에서 연결하는 것을 기준으로 합니다.
 
+### 연결 완료 화면
+
+<p align="center">
+  <img src="docs/images/mobile-pwa-connected.webp" width="260" alt="Velog Alert mobile PWA connected">
+</p>
+
+PWA에 **연결 완료** 상태가 표시되면 기본 pairing은 끝난 것입니다.
+
 연결 후 PC의 설정 화면에서 **휴대폰 테스트 알림 보내기**를 눌러 Push가 오는지 먼저 확인하는 것을 권장합니다.
 
 ---
