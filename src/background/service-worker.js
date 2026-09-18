@@ -2,6 +2,8 @@ import { CONFIG } from '../constants/config.js';
 import {
   setAlwaysOnFollowWatchEnabled,
   syncAlwaysOnFollowings,
+  sendCloudHeartbeat,
+  syncCloudSettings,
 } from '../mobile/push-client.js';
 import { getVelogAuthDiagnostics } from '../api/velog-auth.js';
 import {
@@ -177,6 +179,10 @@ async function performCheck({
   console.info('[Velog Alert] check started', {
     trigger,
     startedAt,
+  });
+
+  sendCloudHeartbeat().catch((error) => {
+    console.warn('[Velog Alert] cloud heartbeat failed', error);
   });
 
   try {
@@ -399,6 +405,11 @@ chrome.runtime.onMessage.addListener((message, _sender, sendResponse) => {
           safePatch.enabled && safePatch.followPost
         ).catch((error) => {
           console.warn('[Velog Alert] always-on toggle sync failed', error);
+        })
+      )
+      .then(() =>
+        syncCloudSettings(safePatch).catch((error) => {
+          console.warn('[Velog Alert] cloud settings sync failed', error);
         })
       )
       .then(() => sendResponse({ ok: true }))
