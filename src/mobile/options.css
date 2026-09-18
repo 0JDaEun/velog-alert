@@ -47,3 +47,7 @@ button { border: 0; border-radius: 11px; padding: 12px 14px; font: inherit; font
 
 .repo-link { display: inline-block; margin-top: 8px; color: #12815f; font-weight: 800; text-decoration: none; }
 .repo-link:hover { text-decoration: underline; }
+
+.relay-health { margin: 2px 0 10px; padding: 9px 10px; border-radius: 9px; background: #f4f6f7; color: #718087; font-size: 12px; }
+.relay-health.ok { background: #effcf7; color: #12815f; }
+.relay-health.error { background: #fff0f0; color: #bd3f3f; }
