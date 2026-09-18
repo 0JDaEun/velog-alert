@@ -34,11 +34,18 @@ Velog Alert v2.1의 권장 배포 방식은 **사용자마다 자신의 Cloudfla
 
 Cloudflare Workers Paid 가입은 필요하지 않습니다.
 
+Cloudflare Plugin/MCP는 필요하지 않습니다. 브라우저 또는 터미널에서 Wrangler OAuth 로그인만 사용합니다.
+
 ## 2. 저장소 받기
 
 ```bash
 git clone https://github.com/0JDaEun/velog-alert.git
-cd velog-alert/cloudflare
+cd velog-alert
+
+# v2.1 정식 릴리즈 전 테스트 단계에서는 아래 브랜치 사용
+git checkout feat/cloudflare-free-first-v3
+
+cd cloudflare
 npm install
 ```
 
