@@ -22,6 +22,7 @@ const POLL_INTERVAL_MS = 5 * 60 * 1000;
 const HEARTBEAT_TTL_MS = 8 * 60 * 1000;
 const MAX_DEVICES = 2;
 const MAX_DEDUP_KEYS = 500;
+const HEALTH_WRITE_INTERVAL_MS = 60 * 60 * 1000;
 
 function nowIso() {
   return new Date().toISOString();
@@ -237,22 +238,50 @@ export class PollShardDO extends DurableObject<Env> {
         );
       }
 
-      account.username = snapshot.currentUser.username;
-      account.notificationFrontier = makeFrontier(
+      const nextNotificationFrontier = makeFrontier(
         snapshot.notifications,
         (item) => item.id,
         (item) => item.created_at,
       );
-      account.feedFrontier = makeFrontier(
+      const nextFeedFrontier = makeFrontier(
         snapshot.feedPosts,
         (item) => item.id,
         (item) => item.released_at || item.updated_at,
       );
-      account.authStatus = "active";
-      account.lastCloudSuccessAt = nowIso();
-      account.lastCloudErrorAt = null;
 
-      await this.saveAccount(account);
+      const frontierChanged =
+        JSON.stringify(nextNotificationFrontier) !==
+          JSON.stringify(account.notificationFrontier) ||
+        JSON.stringify(nextFeedFrontier) !==
+          JSON.stringify(account.feedFrontier);
+
+      const authChanged =
+        snapshot.tokens.accessToken !== tokens.accessToken ||
+        snapshot.tokens.refreshToken !== tokens.refreshToken;
+
+      const healthWriteDue =
+        !account.lastCloudSuccessAt ||
+        Date.now() - Date.parse(account.lastCloudSuccessAt) >=
+          HEALTH_WRITE_INTERVAL_MS;
+
+      const stateChanged =
+        frontierChanged ||
+        authChanged ||
+        events.length > 0 ||
+        account.authStatus !== "active" ||
+        account.lastCloudErrorAt !== null ||
+        account.username !== snapshot.currentUser.username ||
+        healthWriteDue;
+
+      if (stateChanged) {
+        account.username = snapshot.currentUser.username;
+        account.notificationFrontier = nextNotificationFrontier;
+        account.feedFrontier = nextFeedFrontier;
+        account.authStatus = "active";
+        account.lastCloudSuccessAt = nowIso();
+        account.lastCloudErrorAt = null;
+        await this.saveAccount(account);
+      }
     } catch (error) {
       const code = (error as Error)?.message || "CLOUD_POLL_FAILED";
       account.lastCloudErrorAt = nowIso();
