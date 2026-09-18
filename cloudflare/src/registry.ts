@@ -2,7 +2,7 @@ import { DurableObject } from "cloudflare:workers";
 import { randomPairCode } from "./crypto";
 import type { Env, PairingRecord } from "./types";
 
-const SHARD_CAPACITY = 20;
+const SHARD_CAPACITY = 16;
 const PAIRING_TTL_MS = 10 * 60 * 1000;
 
 type ShardAssignment = {
