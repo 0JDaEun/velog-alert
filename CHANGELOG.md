@@ -13,6 +13,7 @@
 - extensionSecret SHA-256 식별
 - 모바일 기기 목록 확인
 - 모바일 알림 전송 실패와 Desktop 알림 경로 격리
+- Chrome 120+에서 사용할 수 있는 30초 빠른 확인 주기
 
 ### Security
 
