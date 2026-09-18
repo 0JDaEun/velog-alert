@@ -184,7 +184,7 @@ export async function setAlwaysOnFollowWatchEnabled(enabled) {
 }
 
 
-export async function enableCloudAuth() {
+export async function enableCloudAuth(settings = null) {
   const state = await getMobileState();
   if (!state.enabled) {
     throw new Error("MOBILE_PUSH_DISABLED");
@@ -198,7 +198,18 @@ export async function enableCloudAuth() {
       "Content-Type": "application/json",
       "X-Extension-Secret": state.extensionSecret,
     },
-    body: JSON.stringify(credentials),
+    body: JSON.stringify({
+      ...credentials,
+      ...(settings ? {
+        settings: {
+          comment: Boolean(settings.comment),
+          commentReply: Boolean(settings.commentReply),
+          postLike: Boolean(settings.postLike),
+          follow: Boolean(settings.follow),
+          followPost: Boolean(settings.followPost),
+        },
+      } : {}),
+    }),
   });
 
   const payload = await response.json().catch(() => ({}));
