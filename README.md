@@ -315,4 +315,17 @@ PC가 켜져 있으면 Chrome Extension이 약 30초 간격으로 확인하고, 
 
 Cloudflare 설치: [docs/CLOUDFLARE_SELF_HOST.md](docs/CLOUDFLARE_SELF_HOST.md)
 
+### Cloudflare 설치는 Wrangler CLI만 사용
+
+Cloudflare Plugin, ChatGPT Desktop 또는 별도 MCP 연결은 필요하지 않습니다.
+
+```bash
+cd cloudflare
+npm install
+npx wrangler login --use-keyring
+npm run setup
+```
+
+각 개발자가 자신의 Cloudflare Free 계정에 직접 로그인하고 배포합니다.
+
 Developer: [0JDaEun](https://github.com/0JDaEun)
