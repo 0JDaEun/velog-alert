@@ -1,145 +1,185 @@
 # Velog Alert 개인정보 처리방침
 
-최종 업데이트: 2026-09-17
+최종 업데이트: 2026-09-18
 
-Velog Alert는 사용자의 Velog 활동을 확인하여 Chrome 알림으로 전달하는 브라우저 확장 프로그램입니다.
+Velog Alert는 Velog에서 발생하는 새 활동을 감지해 Chrome과 사용자의 휴대폰 PWA로 알림을 전달하는 오픈소스 프로젝트입니다.
+
+Velog Alert v2.1의 권장 모바일 구조는 **사용자별 Cloudflare Self-host**입니다. 프로젝트 개발자 0JDaEun이 운영하는 중앙 계정에 모든 사용자의 인증정보를 모으는 구조를 기본으로 하지 않습니다.
 
 ## 1. 처리하는 정보
 
-Velog Alert는 기능 제공을 위해 다음 정보를 처리할 수 있습니다.
+### Chrome Extension
 
-### Velog 인증정보
+기능 제공을 위해 다음 정보를 처리할 수 있습니다.
 
-- `access_token` 쿠키
-- `refresh_token` 쿠키의 존재 여부 및 비민감 메타데이터
-
-`access_token` 값은 Velog GraphQL 요청을 인증하기 위해 실행 중 메모리에서만 사용합니다. 토큰 값은 Velog Alert의 `chrome.storage`에 저장하지 않습니다.
-
-### Velog 알림 정보
-
-Velog가 반환한 알림 중 다음 정보가 처리될 수 있습니다.
-
-- 알림 ID
-- 알림 종류
+- Velog `access_token`
+- Velog `refresh_token`
+- Velog 알림 ID / 종류 / 생성 시각
 - 댓글 또는 답글 내용
 - 활동을 발생시킨 Velog 사용자 정보
-- 게시글 제목
-- 게시글 URL 정보
-- 알림 생성 시각
-- 사용자가 팔로우 중인 Velog 사용자 식별정보
-- 팔로잉 사용자의 공개 게시글 제목, URL, 발행 시각
+- 게시글 제목과 URL
+- 팔로잉 사용자의 공개 게시글 정보
+- 알림 종류 설정 및 확인 주기
 
-## 2. 정보의 이용 목적
+기본 데스크톱 동작에서는 Velog token 값을 `chrome.storage`에 저장하지 않습니다.
 
-처리한 정보는 다음 목적에만 사용합니다.
+### Always-on Cloudflare
 
-- 새로운 Velog 활동인지 판별
-- 댓글 / 답글 / 좋아요 / 팔로우 알림 표시
-- 동일 알림의 중복 표시 방지
-- 최근 감지 기록 표시
-- 알림 클릭 시 관련 Velog 페이지로 이동
-- 인증 및 오류 상태 표시
+사용자가 **Always-on 전체 알림 활성화**를 명시적으로 선택한 경우에만 현재 Velog access / refresh token을 사용자가 지정한 Relay URL로 전송합니다.
 
-## 3. 로컬 저장 정보
+권장 Relay는 사용자가 자신의 Cloudflare 계정에 직접 배포한 Worker입니다.
 
-다음 정보는 사용자의 Chrome 로컬 저장소에 저장될 수 있습니다.
+서버에는 다음 정보가 저장될 수 있습니다.
 
-- 최근 확인한 알림 ID: 최대 200개
-- 최근 알림 히스토리: 최대 50개
-- 알림 클릭용 Velog URL 매핑: 최대 100개
-- 댓글 / 답글 / 좋아요 / 팔로우 ON/OFF 설정
+- AES-GCM으로 암호화된 Velog access / refresh token
+- Push Subscription endpoint / p256dh / auth
+- 임의 device ID
+- 기기 이름
+- 해시된 Extension / Device 식별정보
+- notification / feed frontier
+- 중복 방지용 event key
+- 알림 ON/OFF 설정
+- 마지막 Cloud 성공/오류 시각
+- PC heartbeat 만료 시각
+- 일회성 6자리 pairing 정보
+
+Velog 비밀번호는 입력받거나 저장하지 않습니다.
+
+## 2. 이용 목적
+
+정보는 다음 목적으로만 사용합니다.
+
+- 새로운 Velog 활동 판별
+- 댓글 / 답글 / 좋아요 / 새 팔로워 / 팔로잉 새 글 감지
+- Chrome 및 Web Push 알림
+- 중복 알림 방지
+- PC ON/OFF 전환
+- Velog 인증 갱신
+- 연결 기기 관리
+- 오류 상태 표시
+
+광고, 사용자 프로파일링 또는 행동 분석 목적으로 사용하지 않습니다.
+
+## 3. 로컬 저장
+
+Chrome 로컬 저장소에는 다음 정보가 저장될 수 있습니다.
+
+- 최근 알림 ID
+- 최근 Feed 게시물 ID
+- 최근 알림 히스토리
+- 클릭용 URL 매핑
+- 알림 종류 설정
 - 확인 주기
-- 마지막 확인 시각
-- 자동 확인 상태
-- 오류 진단 메타데이터
+- Relay URL
+- 임의 Extension secret
+- 마지막 확인 및 오류 진단 메타데이터
 
-Velog 인증 토큰의 실제 값은 로컬 저장소에 저장하지 않습니다.
+Velog access / refresh token 값은 Chrome 로컬 저장소에 복사하지 않습니다.
 
-## 4. 외부 전송 및 제3자 제공
+## 4. Self-host 외부 전송
 
-Velog Alert의 데스크톱 기능은 별도 서버 없이 동작합니다. v2.0의 **휴대폰 알림 기능을 사용자가 직접 활성화한 경우에만** Tiny Push Relay와 통신합니다.
+Always-on을 활성화하면 Extension은 사용자가 설정한 Relay URL과 통신합니다.
 
-Push Relay에는 휴대폰 Web Push 전달에 필요한 Push Subscription, 임의 기기 ID, 기기 이름, 해시된 Extension/Device 식별값이 저장될 수 있습니다. Velog 비밀번호, `access_token`, `refresh_token`, Velog 쿠키는 Push Relay로 전송하거나 저장하지 않습니다.
+권장 구성:
 
-휴대폰 알림 전달 시 새 활동의 알림 제목, 본문, 관련 Velog URL, 이벤트 중복 방지용 ID가 처리될 수 있습니다. 광고·분석·마케팅 목적으로 데이터를 판매하거나 사용하지 않습니다.
+```text
+사용자의 Chrome
+→ 사용자의 Cloudflare Worker
+→ Velog GraphQL
+→ 사용자의 Web Push 기기
+```
 
-Velog Alert 자체는 다음과 같은 외부 분석 서비스를 사용하지 않습니다.
+따라서 다른 개발자가 이 프로젝트를 Self-host하면 해당 사용자의 데이터는 해당 사용자의 Cloudflare 계정에서 처리됩니다.
+
+프로젝트 개발자 0JDaEun의 중앙 Cloudflare 계정을 모든 사용자에게 공유하는 방식을 기본 배포 구조로 사용하지 않습니다.
+
+## 5. 암호화
+
+Always-on Velog token은 서버 저장 전 AES-256-GCM으로 암호화합니다.
+
+암호화 master key는 Cloudflare Secret으로 설정하며 Durable Object 저장 데이터와 분리합니다.
+
+다음 원칙을 적용합니다.
+
+- token 원문 로그 출력 금지
+- Authorization / Cookie 원문 로그 출력 금지
+- Velog 비밀번호 수집 금지
+- HTTPS Relay만 권장
+- Secret을 Git 저장소에 commit하지 않음
+
+## 6. 데이터 삭제
+
+사용자는 Extension에서 **Always-on 해제 및 인증 삭제**를 실행해 Cloud에 저장된 Velog 인증정보를 삭제할 수 있습니다.
+
+휴대폰 PWA의 **이 기기 연결 해제**를 통해 Push Subscription 연결을 제거할 수 있습니다.
+
+Self-host Cloudflare Worker 자체를 삭제하면 해당 backend를 더 이상 사용할 수 없습니다.
+
+Chrome Extension을 제거하면 브라우저의 Extension 로컬 저장 데이터도 제거됩니다.
+
+## 7. 6자리 Pairing
+
+Pairing code는 휴대폰과 Extension을 연결하는 임시 코드입니다.
+
+- 6자리 숫자
+- 약 10분 유효
+- 성공 후 삭제
+- 장기 인증정보로 사용하지 않음
+
+## 8. Web Push
+
+휴대폰 알림 전달을 위해 브라우저가 생성한 Web Push Subscription을 저장합니다.
+
+새 활동을 전달할 때 다음 데이터가 Push payload에 포함될 수 있습니다.
+
+- 알림 제목
+- 알림 본문
+- Velog 관련 URL
+- 이벤트 중복 방지 key
+- 생성 시각
+
+## 9. 외부 분석
+
+Velog Alert 자체에는 다음 기능을 포함하지 않습니다.
 
 - Google Analytics
 - 광고 SDK
-- 사용자 행동 추적 SDK
-- 광고 목적의 자체 원격 데이터 수집 서버
+- 마케팅용 사용자 추적 SDK
+- 사용자 데이터 판매 기능
 
-### Mobile Push Relay
-
-휴대폰 알림을 활성화한 경우 서버에는 다음 최소 정보가 저장될 수 있습니다.
-
-- Push Subscription endpoint / p256dh / auth
-- 임의 device ID와 사용자가 정한 기기 이름
-- SHA-256으로 해시된 Extension/Device 식별값
-- 중복 Push 방지용 event key
-- 일회성 6자리 pairing session(최대 10분)
-
-6자리 pairing code는 연결 완료 후 즉시 삭제되며, 만료 시간은 10분입니다.
-
-## 5. 데이터 보관 및 삭제
-
-알림 히스토리는 Chrome 로컬 저장소에 제한된 개수만 유지합니다.
-
-Popup의 **기록 지우기** 기능을 사용하여 최근 알림 히스토리를 삭제할 수 있습니다.
-
-확장 프로그램을 더 이상 사용하지 않으려면 Chrome 확장 프로그램 관리 화면에서 Velog Alert를 제거할 수 있습니다.
-
-## 6. 보안
-
-- Velog와의 네트워크 통신은 HTTPS를 사용합니다.
-- Velog 비밀번호를 직접 수집하지 않습니다.
-- 인증 토큰을 애플리케이션 영구 저장소에 복사하지 않습니다.
-- 원격 JavaScript 코드를 다운로드하여 실행하지 않습니다.
-
-## 7. Chrome 권한 사용
+## 10. Chrome 권한
 
 ### cookies
-
-현재 로그인된 Velog 세션의 인증정보를 확인하여 사용자를 대신해 Velog 알림을 조회하는 데 사용합니다.
+현재 Velog 로그인 세션의 인증정보를 확인하는 데 사용합니다.
 
 ### alarms
-
-설정된 주기에 맞춰 알림 확인 작업을 실행하는 데 사용합니다.
+데스크톱에서 설정한 주기로 새 활동을 확인하는 데 사용합니다.
 
 ### notifications
-
-새 Velog 활동을 운영체제 알림으로 표시하는 데 사용합니다.
+Chrome / 운영체제 알림을 표시하는 데 사용합니다.
 
 ### storage
+사용자 설정과 중복 방지 상태를 로컬에 저장합니다.
 
-중복 알림 판별 상태, 사용자 설정 및 최근 알림 기록을 로컬에 저장하는 데 사용합니다.
+### offscreen / velog.io
+직접 인증 경로 실패 시 Velog 페이지 context fallback에 사용합니다.
 
-### offscreen 및 velog.io 접근
+### v3.velog.io
+Velog GraphQL 조회에 사용합니다.
 
-주 인증 경로에 문제가 있는 경우 Velog 페이지 컨텍스트를 이용한 fallback을 제공하기 위해 사용합니다.
+### *.workers.dev
+사용자가 자신의 Cloudflare Worker를 Relay URL로 사용하는 Self-host 기능에 사용합니다.
 
-### v3.velog.io 접근
+## 11. 주의사항
 
-Velog GraphQL 서버에서 사용자의 알림 데이터를 조회하기 위해 사용합니다.
+Velog Alert는 Velog 공식 제품이 아니며 Velog 웹 서비스가 사용하는 인터페이스에 의존합니다.
 
-## 8. 정책 변경
+Velog의 인증 방식, GraphQL schema 또는 서비스 정책이 변경되면 기능이 중단되거나 업데이트가 필요할 수 있습니다.
 
-기능 또는 데이터 처리 방식이 변경되는 경우 이 문서를 업데이트합니다. 데이터 사용 방식에 중요한 변경이 있는 경우 Chrome Web Store 설명 및 확장 프로그램 UI를 통해 함께 고지하는 것을 원칙으로 합니다.
+## 12. 문의
 
-## 9. 문의
+Developer: 0JDaEun
 
-프로젝트 GitHub 저장소의 Issue 기능을 통해 개인정보 또는 보안 관련 문의를 받을 수 있습니다.
+Repository: https://github.com/0JDaEun/velog-alert
 
-GitHub 저장소: https://github.com/0JDaEun/velog-alert
-
-
-## Always-on 팔로잉 새 글 확인
-
-사용자가 휴대폰 알림을 활성화하면 PC가 꺼진 상태에서도 팔로잉 사용자의 공개 새 게시물을 확인하기 위해 다음 최소 정보가 Push Relay에 저장될 수 있습니다.
-
-- 사용자가 팔로우 중인 Velog 사용자의 username 목록
-- 공개 게시물의 ID, 제목, URL, 발행 시각
-- 중복 알림 방지를 위한 최근 공개 게시물 ID
-
-이 기능은 공개 게시물 조회만 사용하며 Velog `access_token`, `refresh_token`, 쿠키 또는 비밀번호를 서버에 저장하지 않습니다. 댓글·답글·좋아요·새 팔로워처럼 개인 인증이 필요한 알림은 PC Extension이 실행 중일 때만 모바일로 전달됩니다.
+개인정보 또는 보안 관련 문의는 GitHub Issue를 통해 제보할 수 있습니다. 인증 token, cookie 원문 또는 개인정보를 공개 Issue에 첨부하지 마세요.
