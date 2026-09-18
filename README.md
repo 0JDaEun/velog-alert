@@ -277,26 +277,22 @@ PC의 Velog Alert에서 `휴대폰 알림 연결 ↗`을 누르고 6자리 코�
 
 ## PC가 꺼져 있을 때
 
-휴대폰 알림을 연결한 뒤 Extension이 팔로잉 목록을 한 번 동기화하면, Netlify Scheduled Function이 공개 Velog 게시물을 약 1분 간격으로 확인합니다.
+v2.1에서는 **사용자가 직접 배포한 Cloudflare Worker / Durable Object**가 PC OFF 상태를 대신 처리합니다.
 
 ```text
+PC ON
+→ Chrome Extension 약 30초 감지
+→ Cloud heartbeat
+
 PC OFF
-  ↓
-Netlify Scheduled Function
-  ↓
-Velog 공개 새 게시물 확인
-  ↓
-팔로잉 username 비교
-  ↓
-Web Push
-  ↓
-Android / iPhone PWA
+→ heartbeat 만료
+→ 개인 Cloudflare Durable Object
+→ 약 30초 polling
+→ 댓글 / 답글 / 좋아요 / 새 팔로워 / 팔로잉 새 글
+→ Web Push
 ```
 
-따라서 **팔로잉 사용자의 새 게시물**은 PC가 꺼져 있어도 받을 수 있습니다.
-
-댓글, 답글, 좋아요, 새 팔로워는 Velog 개인 인증이 필요한 알림이므로 현재 버전에서는 PC Chrome Extension이 실행 중일 때 모바일로 전달됩니다. 서버에는 Velog 인증 토큰이나 쿠키를 저장하지 않습니다.
-
+Always-on을 명시적으로 활성화한 경우에만 Velog access / refresh token을 자신의 Cloudflare Relay로 전송하며, 서버 저장 시 AES-GCM으로 암호화합니다.
 
 ## v2.1 Self-host Cloudflare
 
