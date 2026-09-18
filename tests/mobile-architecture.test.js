@@ -2,59 +2,34 @@ import test from "node:test";
 import assert from "node:assert/strict";
 import { readFile } from "node:fs/promises";
 
-test("mobile pairing uses six digit one-time code and ten minute ttl", async () => {
-  const source = await readFile(
-    new URL("../netlify/functions/pair-create.mts", import.meta.url),
-    "utf8"
-  );
+async function read(path) {
+  return readFile(new URL(path, import.meta.url), "utf8");
+}
 
-  assert.match(source, /10 \* 60 \* 1000/);
-  assert.match(source, /randomCode/);
-  assert.match(source, /store\.get/);
-  assert.match(source, /store\.setJSON/);
+test("Cloudflare pairing uses a six-digit one-time code with ten-minute TTL", async () => {
+  const registry = await read("../cloudflare/src/registry.ts");
+
+  assert.match(registry, /PAIRING_TTL_MS\s*=\s*10\s*\*\s*60\s*\*\s*1000/);
+  assert.match(registry, /\^\\d\{6\}\$/);
+  assert.match(registry, /await this\.ctx\.storage\.delete\(key\)/);
 });
 
-test("pair claim removes pairing code after successful device registration", async () => {
-  const source = await readFile(
-    new URL("../netlify/functions/pair-claim.mts", import.meta.url),
-    "utf8"
-  );
+test("Extension requires a user-provided Cloudflare Relay URL", async () => {
+  const manifest = await read("../manifest.json");
+  const client = await read("../src/mobile/push-client.js");
+  const options = await read("../src/mobile/options.html");
 
-  assert.match(source, /await store\.delete\(key\)/);
-  assert.match(source, /deviceToken/);
+  assert.doesNotMatch(manifest, /netlify\.app/i);
+  assert.doesNotMatch(client, /velog-alert-mobile\.netlify\.app/i);
+  assert.doesNotMatch(options, /velog-alert-mobile\.netlify\.app/i);
+  assert.match(client, /RELAY_URL_REQUIRED/);
+  assert.match(manifest, /https:\/\/\*\.workers\.dev\/\*/);
 });
 
-test("relay never accepts Velog token fields", async () => {
-  const source = await readFile(
-    new URL("../netlify/functions/push-send.mts", import.meta.url),
-    "utf8"
-  );
+test("Cloudflare health endpoint identifies the self-host backend", async () => {
+  const index = await read("../cloudflare/src/index.ts");
 
-  assert.doesNotMatch(source, /access_token|refresh_token|cookie/i);
-});
-
-test("Netlify functions use supported Blobs consistency and auto-provision VAPID", async () => {
-  const stores = await readFile(
-    new URL("../netlify/functions/_shared/stores.mts", import.meta.url),
-    "utf8"
-  );
-  const push = await readFile(
-    new URL("../netlify/functions/push-send.mts", import.meta.url),
-    "utf8"
-  );
-  const delivery = await readFile(
-    new URL("../netlify/functions/_shared/push-delivery.mts", import.meta.url),
-    "utf8"
-  );
-  const vapid = await readFile(
-    new URL("../netlify/functions/_shared/vapid.mts", import.meta.url),
-    "utf8"
-  );
-
-  assert.match(stores, /getStore\(name, \{ consistency: "strong" \}\)/);
-  assert.doesNotMatch(stores, /get\([^)]*consistency/);
-  assert.match(delivery, /getOrCreateVapidKeys/);
-  assert.match(vapid, /generateVAPIDKeys/);
-  assert.doesNotMatch(push, /process\.env|Netlify\.env/);
-  assert.doesNotMatch(push, /onlyIfNew/);
+  assert.match(index, /\/api\/health/);
+  assert.match(index, /cloudflare-self-host/);
+  assert.match(index, /pollIntervalSeconds:\s*30/);
 });

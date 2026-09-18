@@ -237,7 +237,7 @@ async function handleApi(request: Request, env: Env) {
     }
   }
 
-  // v2 Netlify compatibility. Cloudflare snapshot already includes feedPosts,
+  // Legacy Extension compatibility. Cloudflare snapshot already includes feedPosts,
   // so the separate following username sync is no longer needed.
   if (url.pathname === "/api/followings/sync" && request.method === "POST") {
     return json({ ok: true, deprecated: true });

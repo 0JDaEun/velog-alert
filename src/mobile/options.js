@@ -43,11 +43,20 @@ function showStatus(message) {
 }
 
 async function renderRelayHealth(relay = null) {
+  const state = relay ? null : await getMobileState();
+  const candidate = String(relay || state?.relayBase || "").trim().replace(/\/$/, "");
+
   els.relayHealth.className = "relay-health";
+
+  if (!candidate) {
+    els.relayHealth.textContent = "Cloudflare Relay URL을 먼저 입력하세요.";
+    return false;
+  }
+
   els.relayHealth.textContent = "Relay 연결을 확인하는 중입니다.";
 
   try {
-    const result = await checkRelayHealth(relay);
+    const result = await checkRelayHealth(candidate);
     els.relayHealth.className = "relay-health ok";
     els.relayHealth.textContent =
       `연결 정상 · ${result.backend || result.service || "Velog Alert"} · ${result.pollIntervalSeconds || "?"}초 Cloud polling`;
@@ -63,12 +72,30 @@ async function renderState() {
   const state = await getMobileState();
   els.enabled.checked = state.enabled;
   els.relayBase.value = state.relayBase || DEFAULT_RELAY_BASE;
+
   const relay = state.relayBase || DEFAULT_RELAY_BASE;
-  els.mobileUrl.textContent = relay;
-  els.mobileUrl.href = relay;
+  if (relay) {
+    els.mobileUrl.textContent = relay;
+    els.mobileUrl.href = relay;
+    els.mobileUrl.removeAttribute("aria-disabled");
+  } else {
+    els.mobileUrl.textContent = "Relay URL을 먼저 저장하세요.";
+    els.mobileUrl.removeAttribute("href");
+    els.mobileUrl.setAttribute("aria-disabled", "true");
+  }
 }
 
 async function renderCloudAuthStatus() {
+  const state = await getMobileState();
+  if (!state.relayBase) {
+    els.cloudAuthDot.className = "status-dot";
+    els.cloudAuthTitle.textContent = "Relay 연결 필요";
+    els.cloudAuthMessage.textContent = "먼저 자신의 Cloudflare Relay URL을 저장해 주세요.";
+    els.enableCloudAuth.textContent = "Always-on 전체 알림 활성화";
+    els.disableCloudAuth.classList.add("hidden");
+    return;
+  }
+
   try {
     const auth = await getCloudAuthStatus();
 
@@ -115,6 +142,12 @@ async function renderCloudAuthStatus() {
 }
 
 async function renderDevices() {
+  const state = await getMobileState();
+  if (!state.relayBase) {
+    els.devices.innerHTML = '<p class="muted">Cloudflare Relay URL을 먼저 저장해 주세요.</p>';
+    return;
+  }
+
   els.devices.innerHTML = '<p class="muted">연결된 기기를 확인하는 중입니다.</p>';
 
   try {

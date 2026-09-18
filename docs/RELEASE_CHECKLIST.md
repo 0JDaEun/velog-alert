@@ -17,6 +17,8 @@
 - [x] GitHub Repository link
 - [x] workers.dev host permission
 - [x] Relay health check
+- [x] 신규 16/48/128 아이콘 assets 반영
+- [ ] Chrome toolbar / extension page / notification 실제 아이콘 렌더 확인
 
 ## Cloudflare Self-host
 
@@ -32,7 +34,7 @@
 - [x] Cloud settings sync
 - [x] `npm run setup`
 - [x] PWA Static Assets
-- [ ] 실제 Cloudflare Free 계정 deploy
+- [x] 실제 Cloudflare Free 계정 deploy
 - [ ] `/api/health` smoke test
 - [ ] `/api/push/config` smoke test
 
@@ -71,7 +73,7 @@
 - [x] root JavaScript syntax check
 - [x] root unit tests
 - [x] Cloudflare TypeScript check workflow
-- [ ] latest CI all green
+- [x] latest CI all green
 
 ## Release
 
@@ -81,4 +83,7 @@
 - [ ] Source ZIP
 - [ ] SHA256
 - [ ] GitHub Release `v2.1.0`
-- [ ] Netlify legacy backend 종료 여부 결정
+- [x] Repository의 Netlify legacy runtime / top-level PWA 중복 제거
+- [x] Manifest의 Netlify host permission 제거
+- [x] Relay 기본값 제거 — 사용자 Cloudflare URL 필수
+- [ ] 기존 Netlify production 삭제 여부 결정 (자동 삭제 금지)

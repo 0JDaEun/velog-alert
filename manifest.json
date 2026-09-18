@@ -13,7 +13,6 @@
   "host_permissions": [
     "https://velog.io/*",
     "https://v3.velog.io/*",
-    "https://velog-alert-mobile.netlify.app/*",
     "https://*.workers.dev/*"
   ],
   "background": {

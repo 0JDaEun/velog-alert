@@ -47,10 +47,9 @@
       <a
         id="mobileUrl"
         class="mobile-url"
-        href="https://velog-alert-mobile.netlify.app"
         target="_blank"
         rel="noreferrer"
-      >https://velog-alert-mobile.netlify.app</a>
+      >Relay URL을 먼저 저장하세요.</a>
 
       <div class="platform-guide">
         <div class="guide-block">
@@ -124,10 +123,11 @@
     </section>
 
     <section class="dev card">
-      <h2>개발 설정</h2>
+      <h2>Cloudflare Relay 설정</h2>
+      <p>자신의 Cloudflare Worker 배포 주소(<code>https://...workers.dev</code>)를 먼저 저장해야 모바일 연결 기능을 사용할 수 있습니다.</p>
       <label>
         Relay URL
-        <input id="relayBase" type="url" />
+        <input id="relayBase" type="url" placeholder="https://your-worker.workers.dev" />
       </label>
       <div id="relayHealth" class="relay-health">Relay 상태를 확인하지 않았습니다.</div>
       <button id="saveRelay" class="secondary">저장 및 연결 확인</button>

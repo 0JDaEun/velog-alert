@@ -1,10 +1,18 @@
 import { getVelogCloudCredentials } from "../api/velog-auth.js";
 const STORAGE_KEY = "mobilePush";
 
-export const DEFAULT_RELAY_BASE = "https://velog-alert-mobile.netlify.app";
+export const DEFAULT_RELAY_BASE = "";
 
 export function isSelfHostedRelay(relayBase) {
-  return Boolean(relayBase && relayBase !== DEFAULT_RELAY_BASE);
+  return Boolean(String(relayBase || "").trim());
+}
+
+function requireRelayBase(relayBase) {
+  const base = String(relayBase || "").trim().replace(/\/$/, "");
+  if (!base) {
+    throw new Error("RELAY_URL_REQUIRED");
+  }
+  return base;
 }
 
 function bytesToBase64Url(bytes) {
@@ -51,7 +59,7 @@ export async function saveMobileState(patch) {
 export async function createPairingCode() {
   const state = await getMobileState();
 
-  const response = await fetch(`${state.relayBase}/api/pair/create`, {
+  const response = await fetch(`${requireRelayBase(state.relayBase)}/api/pair/create`, {
     method: "POST",
     headers: {
       "X-Extension-Secret": state.extensionSecret,
@@ -70,7 +78,7 @@ export async function createPairingCode() {
 export async function listMobileDevices() {
   const state = await getMobileState();
 
-  const response = await fetch(`${state.relayBase}/api/devices`, {
+  const response = await fetch(`${requireRelayBase(state.relayBase)}/api/devices`, {
     headers: {
       "X-Extension-Secret": state.extensionSecret,
     },
@@ -101,7 +109,7 @@ export async function sendMobilePush(item) {
   const state = await getMobileState();
   if (!state.enabled) return { skipped: true, reason: "DISABLED" };
 
-  const response = await fetch(`${state.relayBase}/api/push/send`, {
+  const response = await fetch(`${requireRelayBase(state.relayBase)}/api/push/send`, {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
@@ -141,7 +149,7 @@ export async function syncAlwaysOnFollowings(followings = [], { enabled = true }
       .filter(Boolean)
   )];
 
-  const response = await fetch(`${state.relayBase}/api/followings/sync`, {
+  const response = await fetch(`${requireRelayBase(state.relayBase)}/api/followings/sync`, {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
@@ -164,7 +172,7 @@ export async function syncAlwaysOnFollowings(followings = [], { enabled = true }
 export async function setAlwaysOnFollowWatchEnabled(enabled) {
   const state = await getMobileState();
 
-  const response = await fetch(`${state.relayBase}/api/followings/sync`, {
+  const response = await fetch(`${requireRelayBase(state.relayBase)}/api/followings/sync`, {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
@@ -192,7 +200,7 @@ export async function enableCloudAuth(settings = null) {
 
   const credentials = await getVelogCloudCredentials();
 
-  const response = await fetch(`${state.relayBase}/api/cloud-auth/enable`, {
+  const response = await fetch(`${requireRelayBase(state.relayBase)}/api/cloud-auth/enable`, {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
@@ -223,7 +231,7 @@ export async function enableCloudAuth(settings = null) {
 export async function getCloudAuthStatus() {
   const state = await getMobileState();
 
-  const response = await fetch(`${state.relayBase}/api/cloud-auth/status`, {
+  const response = await fetch(`${requireRelayBase(state.relayBase)}/api/cloud-auth/status`, {
     headers: {
       "X-Extension-Secret": state.extensionSecret,
     },
@@ -241,7 +249,7 @@ export async function getCloudAuthStatus() {
 export async function disableCloudAuth() {
   const state = await getMobileState();
 
-  const response = await fetch(`${state.relayBase}/api/cloud-auth`, {
+  const response = await fetch(`${requireRelayBase(state.relayBase)}/api/cloud-auth`, {
     method: "DELETE",
     headers: {
       "X-Extension-Secret": state.extensionSecret,
@@ -263,7 +271,7 @@ export async function sendCloudHeartbeat() {
     return { skipped: true };
   }
 
-  const response = await fetch(`${state.relayBase}/api/heartbeat`, {
+  const response = await fetch(`${requireRelayBase(state.relayBase)}/api/heartbeat`, {
     method: "POST",
     headers: {
       "X-Extension-Secret": state.extensionSecret,
@@ -284,7 +292,7 @@ export async function syncCloudSettings(settings = {}) {
     return { skipped: true };
   }
 
-  const response = await fetch(`${state.relayBase}/api/settings`, {
+  const response = await fetch(`${requireRelayBase(state.relayBase)}/api/settings`, {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
@@ -312,7 +320,7 @@ export async function syncCloudSettings(settings = {}) {
 
 export async function checkRelayHealth(relayBase = null) {
   const state = await getMobileState();
-  const base = (relayBase || state.relayBase || DEFAULT_RELAY_BASE).replace(/\/$/, "");
+  const base = requireRelayBase(relayBase || state.relayBase || DEFAULT_RELAY_BASE);
 
   const response = await fetch(`${base}/api/health`, {
     cache: "no-store",
