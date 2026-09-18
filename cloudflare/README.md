@@ -1,11 +1,22 @@
 # Velog Alert — Cloudflare Free-first Backend
 
+## 권장 배포 모델 — 사용자별 Self-host
+
+공개 배포에서는 중앙 Cloudflare 계정을 공유하지 않고, **각 개발자가 자신의 Cloudflare Free 계정에 이 Worker를 배포**하는 방식을 권장합니다.
+
+이 방식이면 사용자 수가 늘어나도 개발자 0JDaEun의 Cloudflare quota나 비용이 증가하지 않습니다. 각 사용자의 Velog 인증정보도 각자의 Cloudflare 계정에만 저장됩니다.
+
+설치 가이드: [../docs/CLOUDFLARE_SELF_HOST.md](../docs/CLOUDFLARE_SELF_HOST.md)
+
+> Cloud polling은 30초 간격의 준실시간 방식입니다. Velog 공식 webhook이 아니므로 엄밀한 실시간 Push는 아닙니다.
+
+
 이 디렉터리는 Netlify Relay를 대체하기 위한 **다중 사용자용 무료 우선 백엔드**입니다.
 
 ## 목표
 
 - Chrome이 켜져 있으면 기존 Extension이 30초 단위로 빠르게 감지
-- Chrome이 꺼지면 Cloudflare가 약 5분마다 백업 감지
+- Chrome이 꺼지면 Cloudflare가 약 30초마다 백업 감지
 - 댓글 / 답글 / 좋아요 / 새 팔로워 / 팔로잉 새 글 지원
 - Velog 비밀번호 저장 금지
 - access / refresh token은 AES-GCM 암호화 저장
@@ -31,7 +42,7 @@ RegistryDO
   └── account → Poll Shard 배정
                    ↓
 PollShardDO (최대 16계정)
-       ↓ 5분 Alarm
+       ↓ 30초 Alarm
 PC heartbeat가 만료된 계정만
 Velog GraphQL snapshot 1회
        ├── notifications
@@ -162,4 +173,4 @@ npm run deploy
 - 유료 전환은 사용자가 직접 결정하기 전까지 하지 않음
 - PC 활성 계정은 Velog Cloud polling 생략
 - Production deploy는 최종 검증 시에만 수행
-- 5분보다 짧은 Cloud polling은 기본 제공하지 않음
+- 30초보다 짧은 Cloud polling은 기본 제공하지 않음
