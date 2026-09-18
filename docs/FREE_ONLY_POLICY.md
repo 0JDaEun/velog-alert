@@ -87,3 +87,15 @@ CI에서도 이 검사를 실행합니다.
 3. 사용자가 명시적으로 승인한 후에만 진행한다.
 
 기본값은 항상 **무료 유지**입니다.
+
+
+## 배포 전 무료 검증
+
+실제 Cloudflare 계정에 배포하기 전에 CI는 다음 명령으로 Worker bundle과 Wrangler 설정을 검증합니다.
+
+```bash
+npm run dry-run
+# 내부: wrangler deploy --dry-run --outdir .wrangler/dry-run
+```
+
+이 단계는 Worker를 Cloudflare에 업로드하지 않으므로 배포/사용량을 발생시키지 않습니다.
