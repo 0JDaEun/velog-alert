@@ -1,8 +1,8 @@
 {
   "manifest_version": 3,
   "name": "Velog Alert",
-  "version": "2.0.0",
-  "description": "Velog 새 활동을 감지해 데스크톱과 연결된 모바일 PWA에 알림을 전달합니다.",
+  "version": "2.1.0",
+  "description": "Velog 새 활동을 감지해 데스크톱과 개인 Cloudflare 기반 모바일 PWA로 알림을 전달합니다.",
   "permissions": [
     "alarms",
     "cookies",
@@ -13,7 +13,8 @@
   "host_permissions": [
     "https://velog.io/*",
     "https://v3.velog.io/*",
-    "https://velog-alert-mobile.netlify.app/*"
+    "https://velog-alert-mobile.netlify.app/*",
+    "https://*.workers.dev/*"
   ],
   "background": {
     "service_worker": "src/background/service-worker.js",
