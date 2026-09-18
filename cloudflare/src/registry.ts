@@ -108,7 +108,7 @@ export class RegistryDO extends DurableObject<Env> {
     const url = new URL(request.url);
 
     if (request.method === "POST" && url.pathname === "/account/ensure") {
-      const body = await request.json<{ extensionHash?: string }>();
+      const body = await request.json() as { extensionHash?: string };
       if (!body.extensionHash) return Response.json({ error: "INVALID_ACCOUNT" }, { status: 400 });
       return Response.json(await this.ensureShard(body.extensionHash));
     }
@@ -128,7 +128,7 @@ export class RegistryDO extends DurableObject<Env> {
     }
 
     if (request.method === "POST" && url.pathname === "/pair/claim") {
-      const body = await request.json<{ code?: string }>();
+      const body = await request.json() as { code?: string };
       const code = String(body.code || "").replace(/\D/g, "");
 
       if (!/^\d{6}$/.test(code)) {
