@@ -126,3 +126,54 @@ export async function sendMobileTestPush() {
     createdAt: new Date().toISOString(),
   });
 }
+
+
+export async function syncAlwaysOnFollowings(followings = [], { enabled = true } = {}) {
+  const state = await getMobileState();
+  const usernames = [...new Set(
+    followings
+      .map((item) => item?.username)
+      .filter(Boolean)
+  )];
+
+  const response = await fetch(`${state.relayBase}/api/followings/sync`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      "X-Extension-Secret": state.extensionSecret,
+    },
+    body: JSON.stringify({
+      enabled: Boolean(state.enabled && enabled),
+      usernames,
+    }),
+  });
+
+  const payload = await response.json().catch(() => ({}));
+  if (!response.ok) {
+    throw new Error(payload.error || `FOLLOWINGS_SYNC_HTTP_${response.status}`);
+  }
+
+  return payload;
+}
+
+export async function setAlwaysOnFollowWatchEnabled(enabled) {
+  const state = await getMobileState();
+
+  const response = await fetch(`${state.relayBase}/api/followings/sync`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      "X-Extension-Secret": state.extensionSecret,
+    },
+    body: JSON.stringify({
+      enabled: Boolean(state.enabled && enabled),
+    }),
+  });
+
+  const payload = await response.json().catch(() => ({}));
+  if (!response.ok) {
+    throw new Error(payload.error || `FOLLOW_WATCH_TOGGLE_HTTP_${response.status}`);
+  }
+
+  return payload;
+}
