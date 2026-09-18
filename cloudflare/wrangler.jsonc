@@ -7,7 +7,9 @@
     "directory": "./public",
     "binding": "ASSETS",
     "not_found_handling": "single-page-application",
-    "run_worker_first": ["/api/*"]
+    "run_worker_first": [
+      "/api/*"
+    ]
   },
   "durable_objects": {
     "bindings": [
@@ -24,7 +26,18 @@
   "migrations": [
     {
       "tag": "v1",
-      "new_sqlite_classes": ["RegistryDO", "PollShardDO"]
+      "new_sqlite_classes": [
+        "RegistryDO",
+        "PollShardDO"
+      ]
     }
-  ]
+  ],
+  "secrets": {
+    "required": [
+      "AUTH_KEY",
+      "VAPID_PUBLIC_KEY",
+      "VAPID_PRIVATE_KEY",
+      "VAPID_SUBJECT"
+    ]
+  }
 }
