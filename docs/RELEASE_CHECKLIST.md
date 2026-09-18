@@ -19,7 +19,7 @@
 - [x] Relay health check
 - [x] 신규 16/48/128 아이콘 assets 반영
 - [x] iOS/PWA 180/192/512 신규 아이콘 및 versioned asset 경로 반영
-- [ ] Chrome toolbar / extension page / notification 실제 아이콘 렌더 확인
+- [x] Chrome toolbar / extension page 실제 아이콘 렌더 확인
 
 ## Cloudflare Self-host
 
@@ -79,8 +79,8 @@
 
 ## Release
 
-- [ ] Draft PR #4 review
-- [ ] `main` merge
+- [x] PR #4 → `main` merge 완료
+- [x] `main`에 v2.1 README / Cloudflare / PWA 구조 반영
 - [ ] 최종 Release Extension ZIP — 실기기 / PC-OFF E2E 완료 후 확정
 - [ ] Source ZIP
 - [ ] SHA256
