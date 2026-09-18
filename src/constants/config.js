@@ -1,7 +1,7 @@
 export const CONFIG = {
   GRAPHQL_ENDPOINT: 'https://v3.velog.io/graphql',
   ALARM_NAME: 'velog-alert-check',
-  DEFAULT_INTERVAL_MINUTES: 1,
+  DEFAULT_INTERVAL_MINUTES: 0.5,
   MAX_SEEN_IDS: 200,
   MAX_SEEN_FEED_POST_IDS: 300,
   MAX_KNOWN_FOLLOWINGS: 3000,
