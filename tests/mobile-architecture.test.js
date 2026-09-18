@@ -42,6 +42,10 @@ test("Netlify functions use supported Blobs consistency and auto-provision VAPID
     new URL("../netlify/functions/push-send.mts", import.meta.url),
     "utf8"
   );
+  const delivery = await readFile(
+    new URL("../netlify/functions/_shared/push-delivery.mts", import.meta.url),
+    "utf8"
+  );
   const vapid = await readFile(
     new URL("../netlify/functions/_shared/vapid.mts", import.meta.url),
     "utf8"
@@ -49,7 +53,7 @@ test("Netlify functions use supported Blobs consistency and auto-provision VAPID
 
   assert.match(stores, /getStore\(name, \{ consistency: "strong" \}\)/);
   assert.doesNotMatch(stores, /get\([^)]*consistency/);
-  assert.match(push, /getOrCreateVapidKeys/);
+  assert.match(delivery, /getOrCreateVapidKeys/);
   assert.match(vapid, /generateVAPIDKeys/);
   assert.doesNotMatch(push, /process\.env|Netlify\.env/);
   assert.doesNotMatch(push, /onlyIfNew/);
