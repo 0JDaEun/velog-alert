@@ -20,6 +20,84 @@ const STORAGE = {
   deviceName: "velogAlertDeviceName",
 };
 
+const HANDOFF = window.VelogAlertHandoff;
+const HANDOFF_MESSAGE = "VELOG_ALERT_OPEN_TARGET";
+
+function handoffCacheRequest() {
+  if (!HANDOFF) return null;
+  return new Request(new URL(HANDOFF.CACHE_KEY_PATH, window.location.origin).href);
+}
+
+async function clearPendingHandoff() {
+  if (!HANDOFF || !("caches" in window)) return;
+
+  try {
+    const cache = await caches.open(HANDOFF.CACHE_NAME);
+    const request = handoffCacheRequest();
+    if (request) await cache.delete(request);
+  } catch {
+    // Handoff cleanup must never block normal PWA startup.
+  }
+}
+
+async function consumePendingHandoff() {
+  if (!HANDOFF) return false;
+
+  const currentUrl = new URL(window.location.href);
+  const queryTarget = HANDOFF.normalizeVelogTarget(currentUrl.searchParams.get("open"));
+
+  if (currentUrl.searchParams.has("open") || currentUrl.searchParams.has("from")) {
+    currentUrl.searchParams.delete("open");
+    currentUrl.searchParams.delete("from");
+    history.replaceState(null, "", `${currentUrl.pathname}${currentUrl.search}${currentUrl.hash}`);
+  }
+
+  if (queryTarget) {
+    await clearPendingHandoff();
+    window.location.assign(queryTarget);
+    return true;
+  }
+
+  if (!("caches" in window)) return false;
+
+  try {
+    const cache = await caches.open(HANDOFF.CACHE_NAME);
+    const request = handoffCacheRequest();
+    if (!request) return false;
+
+    const response = await cache.match(request);
+    if (!response) return false;
+
+    await cache.delete(request);
+    const record = await response.json().catch(() => null);
+
+    if (!HANDOFF.isFreshHandoff(record)) return false;
+
+    const target = HANDOFF.normalizeVelogTarget(record.url);
+    if (!target) return false;
+
+    window.location.assign(target);
+    return true;
+  } catch {
+    return false;
+  }
+}
+
+function handleServiceWorkerMessage(event) {
+  if (event.data?.type !== HANDOFF_MESSAGE || !HANDOFF) return;
+
+  const target = HANDOFF.normalizeVelogTarget(event.data.url);
+  if (!target) return;
+
+  void clearPendingHandoff().finally(() => {
+    window.location.assign(target);
+  });
+}
+
+if ("serviceWorker" in navigator) {
+  navigator.serviceWorker.addEventListener("message", handleServiceWorkerMessage);
+}
+
 let deferredInstallPrompt = null;
 
 function isIOS() {
@@ -56,7 +134,7 @@ async function registerServiceWorker() {
     throw new Error("이 브라우저는 Service Worker를 지원하지 않습니다.");
   }
 
-  return navigator.serviceWorker.register("/sw.js");
+  return navigator.serviceWorker.register("/sw.js?v=211-click-handoff", { updateViaCache: "none" });
 }
 
 async function getVapidPublicKey() {
@@ -208,20 +286,27 @@ els.disconnectButton.addEventListener("click", async () => {
   }
 });
 
-if (isStandalone()) {
-  els.installedBadge.classList.remove("hidden");
-  els.installHelp.textContent = "설치 완료";
-} else if (isIOS()) {
-  els.iosGuide.classList.remove("hidden");
-  els.installHelp.textContent = "iPhone에서는 Safari에서 홈 화면에 추가하세요.";
+async function bootstrap() {
+  const redirected = await consumePendingHandoff();
+  if (redirected) return;
+
+  if (isStandalone()) {
+    els.installedBadge.classList.remove("hidden");
+    els.installHelp.textContent = "설치 완료";
+  } else if (isIOS()) {
+    els.iosGuide.classList.remove("hidden");
+    els.installHelp.textContent = "iPhone에서는 Safari에서 홈 화면에 추가하세요.";
+  }
+
+  const savedToken = localStorage.getItem(STORAGE.deviceToken);
+  const savedName = localStorage.getItem(STORAGE.deviceName);
+
+  if (savedToken) {
+    setStatus("ok", "연결됨", `${savedName || "이 휴대폰"}에서 Velog 알림을 받도록 연결되어 있습니다.`);
+    els.disconnectButton.classList.remove("hidden");
+  }
+
+  await registerServiceWorker().catch(() => {});
 }
 
-const savedToken = localStorage.getItem(STORAGE.deviceToken);
-const savedName = localStorage.getItem(STORAGE.deviceName);
-
-if (savedToken) {
-  setStatus("ok", "연결됨", `${savedName || "이 휴대폰"}에서 Velog 알림을 받도록 연결되어 있습니다.`);
-  els.disconnectButton.classList.remove("hidden");
-}
-
-registerServiceWorker().catch(() => {});
+void bootstrap();

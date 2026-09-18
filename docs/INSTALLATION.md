@@ -575,6 +575,25 @@ npm run validate
 npm run deploy
 ```
 
+모바일 PWA 코드가 포함된 업데이트라면 배포 후 **홈 화면의 Velog Alert를 한 번 실행**해 최신 Service Worker를 적용하세요.
+
+```text
+Worker 재배포
+→ 홈 화면 Velog Alert 한 번 실행
+→ 앱 종료
+→ 다음 새 알림부터 클릭 테스트
+```
+
+기존 사용자는 이 과정에서 다음 설정을 다시 할 필요가 없습니다.
+
+```text
+6자리 Pairing 재설정 X
+알림 권한 재허용 X
+Always-on 재활성화 X
+Relay URL 재입력 X
+Velog 인증 재연결 X
+```
+
 각 명령의 역할:
 
 | 명령 | 역할 |

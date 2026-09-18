@@ -395,6 +395,39 @@ Pairing code는:
 
 # 8. iPhone PWA / Push
 
+## 알림을 눌렀는데 Velog 글 대신 연결 화면이 열림
+
+정상 동작은 알림 종류에 맞는 Velog 화면으로 이동하는 것입니다.
+
+```text
+팔로잉 새 글 → 해당 게시글
+댓글 / 답글 / 좋아요 → 해당 게시글
+새 팔로워 → 해당 사용자 글 목록
+```
+
+v2.1 click-handoff 수정 이후에도 연결 화면만 열린다면 먼저 Cloudflare를 최신 코드로 배포하고 홈 화면 PWA를 한 번 실행하세요.
+
+```bash
+cd velog-alert
+git pull
+
+cd cloudflare
+npm install
+npm run validate
+npm run deploy
+```
+
+그 다음 iPhone에서:
+
+```text
+홈 화면 Velog Alert 한 번 실행
+→ 앱 종료
+→ 새 Push 알림 수신
+→ 알림 터치
+```
+
+Pairing / 알림 권한 / Always-on을 다시 설정할 필요는 없습니다.
+
 ## iPhone에서 Push가 오지 않음
 
 다음을 순서대로 확인합니다.
