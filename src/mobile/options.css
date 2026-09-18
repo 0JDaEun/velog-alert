@@ -27,4 +27,12 @@ button { border: 0; border-radius: 11px; padding: 12px 14px; font: inherit; font
 .note, .muted { font-size: 12px; }
 .status { position: sticky; bottom: 15px; margin-top: 12px; padding: 12px 14px; border-radius: 12px; background: #19222a; color: white; font-size: 13px; }
 .test-button { width: 100%; margin-top: 12px; }
+.mobile-url { display: block; margin: 10px 0 14px; padding: 11px 13px; border: 1px solid #dce8e4; border-radius: 11px; background: #f6fbf9; color: #12815f; font-size: 13px; font-weight: 750; text-decoration: none; word-break: break-all; }
+.mobile-url:hover { border-color: #20c997; }
+.platform-guide { display: grid; gap: 10px; margin-top: 12px; }
+.guide-block { padding: 14px 15px; border-radius: 13px; background: #f7f9fa; }
+.guide-block strong { display: block; margin-bottom: 8px; font-size: 13px; }
+.guide-block ol { margin: 0; padding-left: 20px; color: #59666e; font-size: 12px; line-height: 1.7; }
+.guide-block li + li { margin-top: 2px; }
+.tip { margin: 12px 0 0; padding: 11px 12px; border-radius: 10px; background: #fff9e8; color: #76632e; font-size: 12px; line-height: 1.55; }
 .hidden { display: none !important; }
