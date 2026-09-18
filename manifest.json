@@ -33,7 +33,7 @@
     "48": "assets/icon48.png",
     "128": "assets/icon128.png"
   },
-  "minimum_chrome_version": "109",
+  "minimum_chrome_version": "120",
   "content_scripts": [
     {
       "matches": [
