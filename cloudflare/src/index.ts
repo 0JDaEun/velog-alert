@@ -50,7 +50,7 @@ async function resolveShard(env: Env, hash: string) {
     throw new Error("SHARD_RESOLUTION_FAILED");
   }
 
-  return response.json<{ shardName: string }>();
+  return response.json() as Promise<{ shardName: string }>;
 }
 
 function shard(env: Env, shardName: string) {
@@ -110,11 +110,11 @@ async function handleApi(request: Request, env: Env) {
   }
 
   if (request.method === "POST" && url.pathname === "/api/pair/claim") {
-    const body = await request.json<{
+    const body = await request.json() as {
       code?: string;
       deviceName?: string;
       subscription?: unknown;
-    }>();
+    };
 
     const claim = await registry(env).fetch("https://internal/pair/claim", {
       method: "POST",
@@ -122,11 +122,11 @@ async function handleApi(request: Request, env: Env) {
       body: JSON.stringify({ code: body.code }),
     });
 
-    const pair = await claim.json<{
+    const pair = await claim.json() as {
       error?: string;
       extensionHash?: string;
       shardName?: string;
-    }>();
+    };
 
     if (!claim.ok || !pair.extensionHash || !pair.shardName) {
       return json(
