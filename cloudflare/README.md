@@ -1,8 +1,20 @@
 # Velog Alert — Cloudflare Free-first Backend
 
-[![Deploy to Cloudflare](https://deploy.workers.cloudflare.com/button)](https://deploy.workers.cloudflare.com/?url=https://github.com/0JDaEun/velog-alert/tree/main/cloudflare)
+## 공식 설치 방식 — Wrangler CLI
 
-> 현재 개발 브랜치 검증 중입니다. 정식 v2.1.0 릴리즈 전에는 CLI의 `npm run setup` 방식을 권장합니다.
+v2.1의 공식 설치 경로는 Cloudflare 플러그인이나 ChatGPT Desktop이 아니라 **Wrangler CLI**입니다.
+
+```bash
+git clone https://github.com/0JDaEun/velog-alert.git
+cd velog-alert
+git checkout feat/cloudflare-free-first-v3
+cd cloudflare
+npm install
+npx wrangler login --use-keyring
+npm run setup
+```
+
+Cloudflare Plugin/MCP는 프로젝트 설치에 필요하지 않습니다.
 
 ## 권장 배포 모델 — 사용자별 Self-host
 
