@@ -52,7 +52,7 @@ npm install
 Cloudflare 로그인(지원되는 OS에서는 OAuth 자격증명을 OS keychain에 보관):
 
 ```bash
-npx wrangler login --use-keyring
+npx wrangler login --device --use-keyring
 ```
 
 ## 3. 한 번에 설정 + 배포
