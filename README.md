@@ -26,6 +26,38 @@
 > Velog Alert는 Velog 공식 제품이 아닌 독립적인 오픈소스 프로젝트입니다.  
 > Velog 공식 Webhook이 아니라 **약 30초 polling 기반의 준실시간 알림**을 제공합니다.
 
+### 바로가기
+
+[기능](#한눈에-보기) · [동작 방식](#동작-방식) · [설치](#설치-및-사용법) · [보안](#보안과-개인정보) · [무료 운영](#free-first) · [FAQ](#faq)
+
+---
+
+## 빠른 시작
+
+### PC 알림만 사용할 때
+
+```text
+Extension ZIP 설치
+→ Velog 로그인
+→ Popup에서 지금 확인
+→ 완료
+```
+
+Cloudflare 계정이나 모바일 설정은 필요하지 않습니다.
+
+### 모바일 + PC OFF 알림까지 사용할 때
+
+```text
+Extension 설치
+→ 자신의 Cloudflare Free backend 배포
+→ workers.dev Relay URL 연결
+→ 휴대폰 PWA Pairing
+→ 테스트 Push
+→ Always-on 활성화
+```
+
+Cloudflare Plugin/MCP나 ChatGPT Desktop은 설치에 필요하지 않습니다. **Wrangler CLI만 사용합니다.**
+
 ---
 
 ## 한눈에 보기
@@ -85,7 +117,7 @@ PC의 마지막 heartbeat는 약 90초 동안 유효합니다. 따라서 PC를 �
 
 ---
 
-# 설치 및 사용법
+## 설치 및 사용법
 
 ## STEP 1. Chrome Extension 설치
 
@@ -137,11 +169,18 @@ PC 알림만 필요하면 이 단계는 생략할 수 있습니다.
 - Chrome 120+
 - Velog 로그인 계정
 
+> Cloudflare Workers Paid 가입이나 결제수단 등록을 요구하지 않는 구성을 기본으로 합니다.
+
 ### 배포
 
 ```bash
 git clone https://github.com/0JDaEun/velog-alert.git
-cd velog-alert/cloudflare
+cd velog-alert
+
+# v2.1 정식 merge 전 테스트 중이라면:
+# git checkout feat/cloudflare-free-first-v3
+
+cd cloudflare
 
 npm install
 npx wrangler login --device --use-keyring
@@ -379,6 +418,20 @@ Safari에서 Relay URL을 연 뒤 **홈 화면에 추가한 PWA**를 실행해 p
 
 </details>
 
+<details>
+<summary><strong>Q. <code>npm install</code>에서 <code>npm warn allow-scripts</code>가 나옵니다.</strong></summary>
+
+`esbuild` 또는 `workerd`의 install script 관련 **경고 자체는 설치 실패를 의미하지 않습니다.** 먼저 다음 단계의 Wrangler 명령이 정상 동작하는지 확인하세요.
+
+```bash
+npx wrangler whoami
+npm run setup
+```
+
+실제로 실행 파일 관련 오류가 발생한 경우에만 `npm approve-scripts --allow-scripts-pending`으로 대상을 확인한 뒤 필요한 package를 승인하세요.
+
+</details>
+
 ---
 
 ## 개발 구조
@@ -441,6 +494,18 @@ npm run dry-run
 ```
 
 `dry-run`은 실제 Worker를 배포하지 않고 bundle과 Wrangler 설정을 검사합니다.
+
+---
+
+## 문서
+
+| 문서 | 내용 |
+|---|---|
+| [설치 상세](docs/INSTALLATION.md) | Extension, PWA, Always-on 설치 순서 |
+| [Cloudflare Self-host](docs/CLOUDFLARE_SELF_HOST.md) | Wrangler CLI 배포와 Relay 설정 |
+| [Free-only Policy](docs/FREE_ONLY_POLICY.md) | 개발/운영 비용 $0 기본 원칙 |
+| [Privacy](PRIVACY.md) | 저장·처리되는 데이터 |
+| [Security](SECURITY.md) | token, Secret, Relay 보안 모델 |
 
 ---
 
