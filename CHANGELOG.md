@@ -1,5 +1,47 @@
 # Changelog
 
+## 2.1.0 — in development
+
+### Added
+
+- 사용자별 Cloudflare Workers Free Self-host backend
+- SQLite-backed Durable Objects 기반 Registry / PollShard
+- 약 30초 PC OFF polling
+- PC heartbeat를 통한 Desktop / Cloud 중복 polling 억제
+- notifications + feedPosts 통합 snapshot
+- 6자리 10분 one-time mobile pairing
+- Android / iPhone PWA Web Push
+- Always-on explicit opt-in
+- AES-256-GCM 인증정보 저장
+- Cloudflare setup / free-check / dry-run workflow
+- 신규 Velog Alert 16/48/128 Extension icon
+
+### Changed
+
+- 모바일 Relay 기본값을 제거하고 사용자 자신의 `*.workers.dev` URL을 필수로 변경
+- Netlify host permission 제거
+- Netlify runtime 및 중복 root PWA 제거
+- Netlify 전용 테스트를 Cloudflare Self-host 테스트로 마이그레이션
+
+### Validation
+
+- Extension syntax checks / unit tests green
+- Cloudflare Free-only check / TypeScript / Wrangler dry-run green
+- Cloudflare Free 계정 실제 deploy 성공
+- Extension ZIP CI artifact 생성
+
+### Pending
+
+- 최신 소스 live health / pairing / mobile push E2E
+- PC OFF 5종 알림 E2E
+- 인증 갱신/만료 E2E
+- Android/iPhone 최종 실기기 확인
+- final merge / release
+
+## 2.0.0 — superseded prototype
+
+v2.0에서는 Netlify 기반 모바일 Relay/PWA 및 Always-on 실험을 진행했습니다. 이 runtime은 v2.1 Cloudflare Self-host 구조로 대체되어 현재 릴리즈 브랜치에서 제거되었습니다.
+
 ## 1.1.0 — 2026-09-17
 
 ### Added

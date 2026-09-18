@@ -1,3 +1,4 @@
+import { sendMobilePush } from '../mobile/push-client.js';
 import { rememberNotificationLink } from '../storage/storage.js';
 
 export function shouldNotify(notification, settings) {
@@ -21,6 +22,13 @@ export async function showNotifications(notifications, settings) {
     });
 
     await rememberNotificationLink(chromeNotificationId, notification.url);
+
+    try {
+      await sendMobilePush(notification);
+    } catch (error) {
+      console.warn('[Velog Alert] mobile push failed', error);
+    }
+
     shown.push(notification);
   }
 

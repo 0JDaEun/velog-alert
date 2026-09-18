@@ -1,0 +1,41 @@
+{
+  "name": "velog-alert-cloudflare",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "wrangler dev",
+    "deploy": "wrangler deploy",
+    "types": "wrangler types",
+    "check": "node --check scripts/setup.mjs && node --check scripts/free-check.mjs && tsc --noEmit",
+    "setup": "node scripts/setup.mjs",
+    "free-check": "node scripts/free-check.mjs",
+    "dry-run": "wrangler deploy --dry-run --outdir .wrangler/dry-run",
+    "validate": "npm run free-check && npm run check && npm run dry-run"
+  },
+  "dependencies": {
+    "web-push": "^3.6.7"
+  },
+  "devDependencies": {
+    "@cloudflare/workers-types": "^5.20260917.1",
+    "typescript": "^5.9.2",
+    "wrangler": "^4.132.0",
+    "@types/web-push": "^3.6.4"
+  },
+  "cloudflare": {
+    "bindings": {
+      "AUTH_KEY": {
+        "description": "AES-256-GCM key for encrypting your own Velog access/refresh tokens. npm run setup generates this automatically."
+      },
+      "VAPID_PUBLIC_KEY": {
+        "description": "Web Push VAPID public key. npm run setup generates this automatically."
+      },
+      "VAPID_PRIVATE_KEY": {
+        "description": "Web Push VAPID private key. npm run setup generates this automatically."
+      },
+      "VAPID_SUBJECT": {
+        "description": "VAPID contact URI, usually mailto:your-email@example.com."
+      }
+    }
+  }
+}

@@ -1,0 +1,6 @@
+# Example only. Do not commit real secret values.
+# Recommended: run `npm run setup` to generate and upload these automatically.
+AUTH_KEY=GENERATE_32_RANDOM_BYTES_AS_BASE64URL
+VAPID_PUBLIC_KEY=GENERATE_WITH_WEB_PUSH
+VAPID_PRIVATE_KEY=GENERATE_WITH_WEB_PUSH
+VAPID_SUBJECT=mailto:you@example.com

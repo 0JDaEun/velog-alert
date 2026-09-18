@@ -1,0 +1,24 @@
+{
+  "name": "Velog Alert",
+  "short_name": "Velog Alert",
+  "description": "Velog 새 활동을 휴대폰에서 받아보는 PWA",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "background_color": "#f4f7f6",
+  "theme_color": "#20c997",
+  "icons": [
+    {
+      "src": "/icon192-v210.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/icon512-v210.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    }
+  ]
+}\n

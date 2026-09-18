@@ -54,6 +54,7 @@
         <button id="checkNow" class="primary">지금 확인</button>
         <button id="testNotification" class="secondary">테스트 알림</button>
       </div>
+      <button id="mobileOptionsButton" class="secondary">휴대폰 알림 연결 ↗</button>
 
       <section class="section">
         <div class="section-title-row">
@@ -65,77 +66,27 @@
         </div>
 
         <div class="settings-card">
-          <label class="setting-row">
-            <span>
-              <strong>댓글</strong>
-              <small>내 게시글에 새 댓글</small>
-            </span>
-            <input id="comment" type="checkbox" />
-          </label>
-          <label class="setting-row">
-            <span>
-              <strong>답글</strong>
-              <small>댓글에 새 답글</small>
-            </span>
-            <input id="commentReply" type="checkbox" />
-          </label>
-          <label class="setting-row">
-            <span>
-              <strong>좋아요</strong>
-              <small>게시글 좋아요</small>
-            </span>
-            <input id="postLike" type="checkbox" />
-          </label>
-          <label class="setting-row">
-            <span>
-              <strong>새 팔로워</strong>
-              <small>나를 새로 팔로우한 사용자</small>
-            </span>
-            <input id="follow" type="checkbox" />
-          </label>
-          <label class="setting-row">
-            <span>
-              <strong>팔로우 새 글</strong>
-              <small>내가 팔로우한 사용자의 새 게시물</small>
-            </span>
-            <input id="followPost" type="checkbox" />
-          </label>
+          <label class="setting-row"><span><strong>댓글</strong><small>내 게시글에 새 댓글</small></span><input id="comment" type="checkbox" /></label>
+          <label class="setting-row"><span><strong>답글</strong><small>댓글에 새 답글</small></span><input id="commentReply" type="checkbox" /></label>
+          <label class="setting-row"><span><strong>좋아요</strong><small>게시글 좋아요</small></span><input id="postLike" type="checkbox" /></label>
+          <label class="setting-row"><span><strong>새 팔로워</strong><small>나를 새로 팔로우한 사용자</small></span><input id="follow" type="checkbox" /></label>
+          <label class="setting-row"><span><strong>팔로우 새 글</strong><small>내가 팔로우한 사용자의 새 게시물</small></span><input id="followPost" type="checkbox" /></label>
         </div>
 
-        <label class="interval-row">
-          <span>
-            <strong>확인 주기</strong>
-            <small>Chrome이 백그라운드에서 확인합니다.</small>
-          </span>
-          <select id="intervalMinutes">
-            <option value="1">1분</option>
-            <option value="5">5분</option>
-            <option value="10">10분</option>
-            <option value="30">30분</option>
-          </select>
-        </label>
+        <label class="interval-row"><span><strong>확인 주기</strong><small>Chrome이 백그라운드에서 확인합니다.</small></span><select id="intervalMinutes"><option value="0.5">30초</option><option value="1">1분</option><option value="5">5분</option><option value="10">10분</option><option value="30">30분</option></select></label>
       </section>
 
       <section class="section history-section">
-        <div class="section-title-row">
-          <div>
-            <p class="section-kicker">HISTORY</p>
-            <h2>최근 감지</h2>
-          </div>
-          <button id="clearHistory" class="text-button">기록 지우기</button>
-        </div>
-
+        <div class="section-title-row"><div><p class="section-kicker">HISTORY</p><h2>최근 감지</h2></div><button id="clearHistory" class="text-button">기록 지우기</button></div>
         <div id="historyList" class="history-list"></div>
         <p id="historyEmpty" class="empty">아직 새로 감지된 알림이 없습니다.</p>
       </section>
 
-      <a class="velog-link" href="https://velog.io/notifications" target="_blank">
-        Velog 알림 페이지 열기 ↗
-      </a>
-
-      <footer>Velog Alert v1.1.0 · Following Feed Alerts</footer>
+      <a class="velog-link" href="https://velog.io/notifications" target="_blank">Velog 알림 페이지 열기 ↗</a>
+      <footer>Velog Alert v2.1.0 · Developer <a href="https://github.com/0JDaEun/velog-alert" target="_blank">0JDaEun</a></footer>
     </main>
 
     <script type="module" src="./popup.js"></script>
+    <script type="module" src="./mobile-link.js"></script>
   </body>
 </html>

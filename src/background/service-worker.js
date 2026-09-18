@@ -1,4 +1,10 @@
 import { CONFIG } from '../constants/config.js';
+import {
+  setAlwaysOnFollowWatchEnabled,
+  syncAlwaysOnFollowings,
+  sendCloudHeartbeat,
+  syncCloudSettings,
+} from '../mobile/push-client.js';
 import { getVelogAuthDiagnostics } from '../api/velog-auth.js';
 import {
   fetchAlertSnapshot,
@@ -175,6 +181,10 @@ async function performCheck({
     startedAt,
   });
 
+  sendCloudHeartbeat().catch((error) => {
+    console.warn('[Velog Alert] cloud heartbeat failed', error);
+  });
+
   try {
     const fetchResult = await fetchSnapshotResilient();
     const snapshot = fetchResult.snapshot;
@@ -194,10 +204,12 @@ async function performCheck({
     let feedDetection = null;
     let feedError = null;
     let normalizedFeedPosts = [];
+    let followingsForCloud = [];
 
     try {
       normalizedFeedPosts = normalizeFeedPosts(snapshot.feedPosts);
       const followings = await fetchResult.followings();
+      followingsForCloud = followings;
 
       feedDetection = detectNewFeedPosts(
         normalizedFeedPosts,
@@ -213,6 +225,16 @@ async function performCheck({
       feedDetection && !feedDetection.initializedNow
         ? feedDetection.newPosts
         : [];
+
+    if (feedDetection) {
+      try {
+        await syncAlwaysOnFollowings(followingsForCloud, {
+          enabled: state.settings.enabled && state.settings.followPost,
+        });
+      } catch (error) {
+        console.warn('[Velog Alert] always-on following sync failed', error);
+      }
+    }
 
     const allNewItems = [...newNotifications, ...newFeedPosts];
 
@@ -378,6 +400,18 @@ chrome.runtime.onMessage.addListener((message, _sender, sendResponse) => {
 
     saveState({ settings: safePatch })
       .then(() => ensureAlarm({ force: true }))
+      .then(() =>
+        setAlwaysOnFollowWatchEnabled(
+          safePatch.enabled && safePatch.followPost
+        ).catch((error) => {
+          console.warn('[Velog Alert] always-on toggle sync failed', error);
+        })
+      )
+      .then(() =>
+        syncCloudSettings(safePatch).catch((error) => {
+          console.warn('[Velog Alert] cloud settings sync failed', error);
+        })
+      )
       .then(() => sendResponse({ ok: true }))
       .catch((error) =>
         sendResponse({ ok: false, message: error?.message ?? 'unknown error' })

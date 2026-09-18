@@ -1,0 +1,141 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Velog Alert · 휴대폰 연결</title>
+  <link rel="stylesheet" href="./options.css" />
+</head>
+<body>
+  <main>
+    <header>
+      <div class="logo">V</div>
+      <div>
+        <p class="eyebrow">VELOG ALERT</p>
+        <h1>휴대폰 알림</h1>
+      </div>
+    </header>
+
+    <section class="card">
+      <div class="row">
+        <div>
+          <strong>휴대폰 알림 사용</strong>
+          <p>PC가 켜져 있을 때는 Chrome이 빠르게 감지하고, PC가 꺼져 있어도 개인 Cloudflare Worker가 약 30초 간격으로 모든 활성 알림을 확인합니다.</p>
+        </div>
+        <input id="enabled" type="checkbox" />
+      </div>
+    </section>
+
+    <section class="card">
+      <span class="step">1</span>
+      <h2>연결 코드 만들기</h2>
+      <p>코드는 10분 동안 한 번만 사용할 수 있습니다.</p>
+      <button id="createCode" class="primary">6자리 연결 코드 만들기</button>
+
+      <div id="codeBox" class="code-box hidden">
+        <span>연결 코드</span>
+        <strong id="code">---</strong>
+        <small id="expires">10분 안에 휴대폰에서 입력하세요.</small>
+      </div>
+    </section>
+
+    <section class="card">
+      <span class="step">2</span>
+      <h2>휴대폰에 Velog Alert 추가하기</h2>
+      <p>휴대폰 브라우저에서 아래 주소를 열고 홈 화면에 Velog Alert를 추가합니다.</p>
+
+      <a
+        id="mobileUrl"
+        class="mobile-url"
+        target="_blank"
+        rel="noreferrer"
+      >Relay URL을 먼저 저장하세요.</a>
+
+      <div class="platform-guide">
+        <div class="guide-block">
+          <strong>Android · Chrome</strong>
+          <ol>
+            <li>Chrome에서 위 주소를 엽니다.</li>
+            <li>브라우저 메뉴(⋮)에서 <b>앱 설치</b> 또는 <b>홈 화면에 추가</b>를 선택합니다.</li>
+            <li>홈 화면에 생긴 <b>Velog Alert</b>를 실행합니다.</li>
+            <li>PC에 표시된 6자리 연결 코드를 입력합니다.</li>
+            <li><b>알림 허용 및 연결</b>을 누르고 알림 권한을 허용합니다.</li>
+          </ol>
+        </div>
+
+        <div class="guide-block">
+          <strong>iPhone · Safari</strong>
+          <ol>
+            <li>Safari에서 위 주소를 엽니다.</li>
+            <li>하단의 <b>공유</b> 버튼을 누릅니다.</li>
+            <li><b>홈 화면에 추가</b> → <b>추가</b>를 선택합니다.</li>
+            <li>홈 화면에 생긴 <b>Velog Alert</b>를 실행합니다.</li>
+            <li>PC에 표시된 6자리 연결 코드를 입력하고 알림 권한을 허용합니다.</li>
+          </ol>
+        </div>
+      </div>
+
+      <p class="tip">
+        연결 코드는 생성 후 10분 동안 한 번만 사용할 수 있습니다. 만료되면 PC에서 새 코드를 만들어 주세요.
+      </p>
+    </section>
+
+    <section class="card">
+      <div class="title-row">
+        <div>
+          <span class="step">3</span>
+          <h2>연결된 기기</h2>
+        </div>
+        <button id="refreshDevices" class="text-button">새로고침</button>
+      </div>
+      <div id="devices" class="devices">
+        <p class="muted">연결된 기기를 확인하는 중입니다.</p>
+      </div>
+      <button id="testMobilePush" class="secondary test-button">휴대폰 테스트 알림 보내기</button>
+    </section>
+
+    <section id="cloudAuthCard" class="card">
+      <span class="step">4</span>
+      <h2>PC가 꺼져 있어도 모든 알림 받기</h2>
+      <p>
+        댓글, 답글, 좋아요, 새 팔로워, 팔로잉 새 글을 Cloud에서 약 30초마다 확인합니다.
+        이 기능을 켜면 현재 Velog access/refresh token을 암호화하여 Push 서버에 저장합니다.
+        Velog 비밀번호는 전송하지 않습니다.
+      </p>
+
+      <div class="cloud-auth-status">
+        <span id="cloudAuthDot" class="status-dot"></span>
+        <div>
+          <strong id="cloudAuthTitle">상태 확인 중</strong>
+          <small id="cloudAuthMessage">Cloud 인증 상태를 확인하고 있습니다.</small>
+        </div>
+      </div>
+
+      <button id="enableCloudAuth" class="primary">Always-on 전체 알림 활성화</button>
+      <button id="disableCloudAuth" class="danger hidden">Always-on 해제 및 인증 삭제</button>
+    </section>
+
+    <section class="card developer-card">
+      <span class="step">OPEN SOURCE</span>
+      <h2>Developer · 0JDaEun</h2>
+      <p>Velog Alert는 개발자가 각자 자신의 Cloudflare Free 계정에 Relay를 배포해 사용할 수 있도록 구성된 오픈소스 프로젝트입니다.</p>
+      <a class="repo-link" href="https://github.com/0JDaEun/velog-alert" target="_blank" rel="noreferrer">GitHub Repository 열기 ↗</a>
+    </section>
+
+    <section class="dev card">
+      <h2>Cloudflare Relay 설정</h2>
+      <p>자신의 Cloudflare Worker 배포 주소(<code>https://...workers.dev</code>)를 먼저 저장해야 모바일 연결 기능을 사용할 수 있습니다.</p>
+      <label>
+        Relay URL
+        <input id="relayBase" type="url" placeholder="https://your-worker.workers.dev" />
+      </label>
+      <div id="relayHealth" class="relay-health">Relay 상태를 확인하지 않았습니다.</div>
+      <button id="saveRelay" class="secondary">저장 및 연결 확인</button>
+    </section>
+
+    <div id="status" class="status hidden"></div>
+  </main>
+
+  <script type="module" src="./options.js"></script>
+</body>
+</html>
