@@ -1,4 +1,8 @@
-# 🔔 Velog Alert
+<p align="center">
+  <img src="docs/images/velog-alert-logo-v210.webp" width="150" alt="Velog Alert latest logo">
+</p>
+
+<h1 align="center">Velog Alert</h1>
 
 <p align="center">
   <strong>Velog의 새 활동을 Chrome과 모바일에서 받아보는 Self-hosted Notification Extension</strong>
@@ -68,11 +72,6 @@ F. Always-on 활성화
 
 ## 한눈에 보기
 
-<p align="center">
-  <img src="docs/images/desktop-notification-like.webp" width="390" alt="Velog Alert desktop notification">
-  <img src="docs/images/mobile-notifications.webp" width="235" alt="Velog Alert mobile notifications">
-</p>
-
 | 이벤트 | PC 알림 | 모바일 Push | PC OFF |
 |---|:---:|:---:|:---:|
 | 새 댓글 | ✅ | ✅ | ✅ |
@@ -82,6 +81,33 @@ F. Always-on 활성화
 | 팔로잉 사용자의 새 글 | ✅ | ✅ | ✅ |
 
 기본 확인 주기는 **30초**이며 30초 / 1분 / 5분 / 10분 / 30분 중에서 선택할 수 있습니다.
+
+---
+
+## 실제 동작 화면
+
+### Desktop — Chrome Notification
+
+<p align="center">
+  <img src="docs/images/desktop-notification-current.webp" width="520" alt="Velog Alert Windows Chrome notification with latest logo">
+</p>
+
+<p align="center">
+  <sub>새 팔로워 감지 → Windows Chrome Notification</sub>
+</p>
+
+### Mobile — iPhone Web Push
+
+<p align="center">
+  <img src="docs/images/mobile-notification-current.webp" width="280" alt="Velog Alert iPhone lock screen Web Push with latest logo">
+</p>
+
+<p align="center">
+  <sub>PC OFF 상태에서도 Cloudflare → Web Push로 전달되는 실제 iPhone 알림</sub>
+</p>
+
+> [!NOTE]
+> 위 화면은 현재 v2.1 최신 로고가 적용된 실제 알림 화면입니다.
 
 ---
 
