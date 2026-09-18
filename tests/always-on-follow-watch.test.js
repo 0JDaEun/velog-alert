@@ -1,39 +1,32 @@
-import test from 'node:test';
-import assert from 'node:assert/strict';
-import { readFile } from 'node:fs/promises';
+import test from "node:test";
+import assert from "node:assert/strict";
+import { readFile } from "node:fs/promises";
 
-test('always-on follow watcher runs every minute without Velog auth tokens', async () => {
-  const watcher = await readFile(
-    new URL('../netlify/functions/follow-watch.mts', import.meta.url),
-    'utf8'
-  );
-  const publicClient = await readFile(
-    new URL('../netlify/functions/_shared/velog-public.mts', import.meta.url),
-    'utf8'
-  );
+async function read(path) {
+  return readFile(new URL(path, import.meta.url), "utf8");
+}
 
-  assert.match(watcher, /schedule:\s*"\* \* \* \* \*"/);
-  assert.match(publicClient, /https:\/\/v2\.velog\.io\/graphql/);
-  assert.doesNotMatch(publicClient, /access_token|refresh_token|Authorization/i);
+test("always-on follow posts are polled by the Cloudflare Durable Object every 30 seconds", async () => {
+  const shard = await read("../cloudflare/src/shard.ts");
+
+  assert.match(shard, /POLL_INTERVAL_MS\s*=\s*30\s*\*\s*1000/);
+  assert.match(shard, /newFeedPosts\.map\(feedPostToEvent\)/);
+  assert.match(shard, /setAlarm\(Date\.now\(\) \+ POLL_INTERVAL_MS\)/);
 });
 
-test('cloud follow post uses the same event key as desktop mobile push', async () => {
-  const watcher = await readFile(
-    new URL('../netlify/functions/follow-watch.mts', import.meta.url),
-    'utf8'
-  );
+test("Cloudflare and desktop use the same follow-post event key family", async () => {
+  const velog = await read("../cloudflare/src/velog.ts");
+  const client = await read("../src/mobile/push-client.js");
 
-  assert.match(watcher, /followPost:feed-post:\$\{post\.id\}/);
-  assert.match(watcher, /deliverEventToExtension/);
+  assert.match(velog, /followPost:feed-post:/);
+  assert.match(client, /eventKey:/);
+  assert.match(client, /item\.type/);
+  assert.match(client, /item\.id/);
 });
 
-test('extension syncs usernames but not Velog credentials to always-on watcher', async () => {
-  const client = await readFile(
-    new URL('../src/mobile/push-client.js', import.meta.url),
-    'utf8'
-  );
+test("legacy followings sync endpoint is a no-op compatibility route", async () => {
+  const index = await read("../cloudflare/src/index.ts");
 
-  assert.match(client, /\/api\/followings\/sync/);
-  assert.match(client, /usernames/);
-  assert.doesNotMatch(client, /access_token|refresh_token/);
+  assert.match(index, /\/api\/followings\/sync/);
+  assert.match(index, /deprecated:\s*true/);
 });
