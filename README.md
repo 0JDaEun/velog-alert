@@ -322,7 +322,7 @@ Cloudflare Plugin, ChatGPT Desktop 또는 별도 MCP 연결은 필요하지 않�
 ```bash
 cd cloudflare
 npm install
-npx wrangler login --use-keyring
+npx wrangler login --device --use-keyring
 npm run setup
 ```
 
