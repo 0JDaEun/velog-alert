@@ -1,5 +1,9 @@
 # Velog Alert — Cloudflare Free-first Backend
 
+[![Deploy to Cloudflare](https://deploy.workers.cloudflare.com/button)](https://deploy.workers.cloudflare.com/?url=https://github.com/0JDaEun/velog-alert/tree/main/cloudflare)
+
+> 현재 개발 브랜치 검증 중입니다. 정식 v2.1.0 릴리즈 전에는 CLI의 `npm run setup` 방식을 권장합니다.
+
 ## 권장 배포 모델 — 사용자별 Self-host
 
 공개 배포에서는 중앙 Cloudflare 계정을 공유하지 않고, **각 개발자가 자신의 Cloudflare Free 계정에 이 Worker를 배포**하는 방식을 권장합니다.
@@ -70,9 +74,9 @@ Cloudflare Free의 50 subrequests/invocation 한도 안에 들어오도록 구�
 
 ## Heartbeat
 
-PC Extension은 Cloudflare 전환 후 약 5분 간격으로 heartbeat를 보냅니다.
+PC Extension은 기본 30초 desktop check 시 Cloudflare heartbeat를 함께 보냅니다.
 
-서버는 heartbeat 수신 후 8분 동안 해당 PC를 활성 상태로 봅니다.
+서버는 heartbeat 수신 후 약 90초 동안 해당 PC를 활성 상태로 봅니다.
 
 ```text
 PC ON
@@ -80,7 +84,7 @@ PC ON
 → PollShard Alarm은 실행되더라도 Velog 요청 생략
 
 PC OFF
-→ 약 8분 후 heartbeat 만료
+→ 약 90초 후 heartbeat 만료
 → Cloud polling 시작
 ```
 
@@ -91,7 +95,7 @@ PC OFF
 기본 간격:
 
 ```text
-5분
+30초
 ```
 
 Cloud 조회 한 번에 Velog GraphQL request 하나로 다음을 함께 가져옵니다.
