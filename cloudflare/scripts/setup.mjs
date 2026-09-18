@@ -15,10 +15,44 @@ function base64Url(bytes) {
 
 const rl = createInterface({ input, output });
 
+function run(command, args, options = {}) {
+  return spawnSync(command, args, {
+    encoding: "utf8",
+    ...options,
+  });
+}
+
+function assertNodeVersion() {
+  const major = Number(process.versions.node.split(".")[0]);
+  if (!Number.isFinite(major) || major < 20) {
+    throw new Error(`Node.js 20 이상이 필요합니다. 현재 버전: ${process.versions.node}`);
+  }
+}
+
 try {
+  assertNodeVersion();
   console.log("\nVelog Alert · Cloudflare self-host setup\n");
   console.log("이 스크립트는 AUTH_KEY와 VAPID 키를 로컬에서 생성하고 Cloudflare Secret으로 업로드합니다.");
   console.log("Velog 비밀번호나 Velog 토큰은 이 단계에서 사용하지 않습니다.\n");
+
+  const npx = process.platform === "win32" ? "npx.cmd" : "npx";
+
+  console.log("Cloudflare 로그인 상태를 확인합니다...");
+  const whoami = run(npx, ["wrangler", "whoami"], { stdio: "pipe" });
+
+  if (whoami.status !== 0) {
+    console.error(whoami.stdout || "");
+    console.error(whoami.stderr || "");
+    throw new Error(
+      "Cloudflare 로그인이 필요합니다. 먼저 'npx wrangler login --use-keyring'을 실행한 뒤 다시 시도하세요."
+    );
+  }
+
+  console.log("Free-only 구조를 검사합니다...");
+  const freeCheck = run(process.execPath, ["scripts/free-check.mjs"], { stdio: "inherit" });
+  if (freeCheck.status !== 0) {
+    throw new Error("Free-only 검사에 실패해 배포를 중단했습니다.");
+  }
 
   const email = (await rl.question("VAPID 연락 이메일: ")).trim();
 
@@ -37,9 +71,20 @@ try {
   const tempFile = ".velog-alert-secrets.generated.json";
   writeFileSync(tempFile, JSON.stringify(secrets, null, 2), { mode: 0o600 });
 
+  console.log("\n실제 업로드 전에 Wrangler dry-run을 실행합니다...");
+  const dryRun = run(
+    npx,
+    ["wrangler", "deploy", "--dry-run", "--secrets-file", tempFile, "--outdir", ".wrangler/setup-dry-run"],
+    { stdio: "inherit" },
+  );
+
+  if (dryRun.status !== 0) {
+    rmSync(tempFile, { force: true });
+    throw new Error("Wrangler dry-run에 실패해 실제 배포를 중단했습니다.");
+  }
+
   console.log("\nCloudflare에 Worker와 Secret을 배포합니다...");
-  const npx = process.platform === "win32" ? "npx.cmd" : "npx";
-  const result = spawnSync(
+  const result = run(
     npx,
     ["wrangler", "deploy", "--secrets-file", tempFile],
     { stdio: "inherit" },
