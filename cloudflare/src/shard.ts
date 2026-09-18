@@ -471,7 +471,7 @@ export class PollShardDO extends DurableObject<Env> {
     }
 
     if (request.method === "POST" && url.pathname === "/push/send") {
-      const body = await request.json<{ event?: unknown }>();
+      const body = await request.json() as { event?: unknown };
       if (!validEvent(body.event)) {
         return Response.json({ error: "INVALID_EVENT" }, { status: 400 });
       }
@@ -483,11 +483,11 @@ export class PollShardDO extends DurableObject<Env> {
     }
 
     if (request.method === "POST" && url.pathname === "/cloud-auth/enable") {
-      const body = await request.json<{
+      const body = await request.json() as {
         accessToken?: string | null;
         refreshToken?: string;
         settings?: Partial<AlertSettings>;
-      }>();
+      };
       return this.enableCloudAuth(extensionHash, body);
     }
 
@@ -517,7 +517,7 @@ export class PollShardDO extends DurableObject<Env> {
     }
 
     if (request.method === "POST" && url.pathname === "/settings") {
-      const body = await request.json<{ settings?: Partial<AlertSettings> }>();
+      const body = await request.json() as { settings?: Partial<AlertSettings> };
       const account = await this.getAccount(extensionHash);
       account.settings = {
         ...account.settings,
