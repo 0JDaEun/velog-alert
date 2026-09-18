@@ -18,8 +18,8 @@ import {
   type VelogTokens,
 } from "./velog";
 
-const POLL_INTERVAL_MS = 5 * 60 * 1000;
-const HEARTBEAT_TTL_MS = 8 * 60 * 1000;
+const POLL_INTERVAL_MS = 30 * 1000;
+const HEARTBEAT_TTL_MS = 90 * 1000;
 const MAX_DEVICES = 2;
 const MAX_DEDUP_KEYS = 500;
 const HEALTH_WRITE_INTERVAL_MS = 60 * 60 * 1000;
