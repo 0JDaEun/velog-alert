@@ -63,7 +63,12 @@ Cloudflare Plugin/MCP나 ChatGPT Desktop은 설치에 필요하지 않습니다.
 ## 한눈에 보기
 
 <p align="center">
-  <img src="docs/images/desktop-notification-like.webp" width="410" alt="Velog Alert desktop notification">
+  <img src="docs/images/desktop-notification-like.webp" width="390" alt="Velog Alert desktop notification">
+  <img src="docs/images/mobile-notifications.webp" width="235" alt="Velog Alert mobile notifications">
+</p>
+
+<p align="center">
+  <sub>Desktop Notification · Mobile Web Push</sub>
 </p>
 
 Velog Alert는 **PC에서만 사용하는 Chrome Extension**으로도 동작합니다.  
