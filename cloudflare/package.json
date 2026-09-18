@@ -8,7 +8,8 @@
     "deploy": "wrangler deploy",
     "types": "wrangler types",
     "check": "tsc --noEmit",
-    "setup": "node scripts/setup.mjs"
+    "setup": "node scripts/setup.mjs",
+    "free-check": "node scripts/free-check.mjs"
   },
   "dependencies": {
     "web-push": "^3.6.7"
