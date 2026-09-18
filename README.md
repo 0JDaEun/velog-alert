@@ -1,331 +1,458 @@
-# Velog Alert
+# 🔔 Velog Alert
 
-Velog에서 발생한 **댓글, 답글, 좋아요, 팔로우, 팔로잉 사용자의 새 게시물**를 주기적으로 확인하고 Chrome 데스크톱 알림으로 알려주는 Manifest V3 확장 프로그램입니다.
+<p align="center">
+  <strong>Velog의 새 활동을 Chrome과 모바일에서 받아보는 Self-hosted Notification Extension</strong>
+</p>
 
-> Velog Alert는 Velog 공식 제품이 아닌 독립적인 오픈소스 프로젝트입니다.
+<p align="center">
+  댓글 · 답글 · 좋아요 · 새 팔로워 · 팔로잉 새 글을 감지하고,<br/>
+  PC가 꺼져 있어도 개인 Cloudflare Worker가 약 30초 간격으로 확인해 모바일 PWA로 전달합니다.
+</p>
 
-Repository: https://github.com/0JDaEun/velog-alert
+<p align="center">
+  <img alt="Manifest V3" src="https://img.shields.io/badge/Chrome-Manifest_V3-4285F4?logo=googlechrome&logoColor=white">
+  <img alt="Chrome 120+" src="https://img.shields.io/badge/Chrome-120%2B-4285F4">
+  <img alt="Cloudflare Workers" src="https://img.shields.io/badge/Cloudflare-Workers-F38020?logo=cloudflare&logoColor=white">
+  <img alt="PWA" src="https://img.shields.io/badge/Mobile-PWA-5A0FC8">
+  <img alt="Free First" src="https://img.shields.io/badge/Infra-Free--first-12B886">
+</p>
 
-## 주요 기능
+<p align="center">
+  Developer · <a href="https://github.com/0JDaEun"><strong>0JDaEun</strong></a>
+  &nbsp;·&nbsp;
+  <a href="https://github.com/0JDaEun/velog-alert">Repository</a>
+</p>
 
-- Velog 새 댓글 자동 감지
-- 내 댓글에 달린 새 답글 감지
-- 좋아요 / 팔로우 알림 선택적 활성화
-- Chrome / Windows 데스크톱 알림
-- 알림 클릭 시 관련 Velog 페이지 이동
-- 최근 감지 기록 확인
-- 알림 종류별 ON/OFF
-- 확인 주기 30초 / 1 / 5 / 10 / 30분
-- 수동 `지금 확인`
-- Chrome 알림 동작 확인용 테스트 알림
-- 중복 알림 방지
-- 최초 설치 시 기존 알림 일괄 발송 방지
-- Chrome 재시작 및 Manifest V3 Service Worker 재기동 대응
-- 팔로우한 Velog 사용자의 새 게시물 감지
-- 새 팔로우 시 최근 게시글 backfill 오탐 방지
+> Velog Alert는 Velog 공식 제품이 아닌 독립적인 오픈소스 프로젝트입니다.  
+> Velog 공식 Webhook이 아니라 **약 30초 polling 기반의 준실시간 알림**을 제공합니다.
 
-## 동작 구조
+---
 
-```text
-chrome.alarms
-      ↓
-Service Worker
-      ↓
-Velog 인증 쿠키 확인
-      ↓
-Authorization: Bearer
-      ↓
-https://v3.velog.io/graphql
-      ↓
-Notification Parser
-      ↓
-seenNotificationIds 비교
-      ↓
-새 알림만 선별
-      ↓
-chrome.notifications
-      ↓
-사용자 클릭
-      ↓
-Velog 게시글
-```
+## 한눈에 보기
 
-Velog API 직접 인증 경로가 실패하는 경우를 대비해 Velog 페이지 브리지 fallback도 포함되어 있습니다.
+<p align="center">
+  <img src="docs/images/desktop-notification-like.webp" width="410" alt="Velog Alert desktop notification">
+</p>
 
-## 현재 설치 방식
+Velog Alert는 **PC에서만 사용하는 Chrome Extension**으로도 동작합니다.  
+모바일 알림과 PC OFF Always-on 기능이 필요할 때만 자신의 **Cloudflare Free 계정**에 backend를 배포하면 됩니다.
 
-> 현재 Velog Alert는 Chrome Web Store 정식 등록 전입니다. 따라서 다른 사용자는 ZIP 파일을 내려받아 **Chrome 개발자 모드에서 직접 설치**해야 합니다.
+| 이벤트 | PC 알림 | 모바일 Push | PC OFF |
+|---|:---:|:---:|:---:|
+| 새 댓글 | ✅ | ✅ | ✅ |
+| 새 답글 | ✅ | ✅ | ✅ |
+| 좋아요 | ✅ | ✅ | ✅ |
+| 새 팔로워 | ✅ | ✅ | ✅ |
+| 팔로잉 사용자의 새 글 | ✅ | ✅ | ✅ |
+
+추가로 알림 종류별 ON/OFF, 최근 감지 기록, 테스트 알림, 중복 방지, 최초 설치 baseline, Chrome 재시작 대응을 제공합니다.
+
+---
+
+## 동작 방식
+
+### PC가 켜져 있을 때
 
 ```text
-ZIP 다운로드
-→ 압축 해제
-→ chrome://extensions
-→ 개발자 모드 ON
-→ "압축해제된 확장 프로그램을 로드합니다"
-→ manifest.json이 들어있는 폴더 선택
-```
-
-ZIP 파일 자체를 Chrome에 넣는 방식은 아니며, 반드시 먼저 압축을 풀어야 합니다. Chrome Web Store 등록 후에는 이 수동 설치 과정 없이 일반 확장 프로그램처럼 설치할 수 있도록 변경할 예정입니다.
-
-## 설치
-
-### 개발자 모드에서 설치
-
-1. 이 저장소를 내려받거나 Release ZIP의 압축을 풉니다.
-2. Chrome 주소창에 `chrome://extensions`를 입력합니다.
-3. 우측 상단 **개발자 모드**를 켭니다.
-4. **압축해제된 확장 프로그램을 로드합니다**를 누릅니다.
-5. `manifest.json`이 있는 `velog-alert` 폴더를 선택합니다.
-6. Velog에 로그인합니다.
-7. Velog Alert Popup에서 `Velog 인증: 로그인 확인`을 확인합니다.
-8. `지금 확인`을 한 번 눌러 현재 알림을 baseline으로 저장합니다.
-
-자세한 내용은 [`docs/INSTALLATION.md`](docs/INSTALLATION.md)를 참고하세요.
-
-## 팔로잉 새 글 감지
-
-v1.1.0부터 Velog의 로그인 사용자 전용 `feedPosts`를 함께 확인합니다.
-
-```text
-내가 팔로우한 사용자
-        ↓
-새 게시물 발행
-        ↓
-Velog Feed
-        ↓
-Velog Alert 신규 ID 비교
-        ↓
-Chrome Notification
-```
-
-새 사용자를 팔로우하면 Velog가 해당 사용자의 최근 게시물을 Feed에 추가할 수 있기 때문에,
-Velog Alert는 현재 팔로잉 목록도 함께 비교합니다. 이번 검사에서 새로 팔로우된 사용자의
-기존 게시물은 baseline으로 처리하고 새 글 알림으로 표시하지 않습니다.
-
-## 최초 실행이 알림을 띄우지 않는 이유
-
-첫 조회에서는 현재 존재하는 Velog 알림을 모두 **기준점(Baseline)** 으로 저장합니다.
-
-```text
-확장 설치
-→ 현재 알림 25개 조회
-→ 25개 ID 저장
-→ OS 알림은 표시하지 않음
-```
-
-이후 새롭게 생성된 ID만 Chrome 알림으로 표시합니다. 따라서 설치 직후 오래된 알림이 한꺼번에 표시되지 않습니다.
-
-## 기본 설정
-
-Chrome 120 이상에서는 30초 확인 모드를 사용합니다. v2.1의 기본 데스크톱 확인 주기는 30초이며, 필요하면 Popup에서 1 / 5 / 10 / 30분으로 낮출 수 있습니다.
-
-
-| 항목 | 기본값 |
-|---|---|
-| 전체 알림 | ON |
-| 댓글 | ON |
-| 답글 | ON |
-| 좋아요 | OFF |
-| 팔로우 | OFF |
-| 확인 주기 | 30초 |
-| 로컬 히스토리 | 최대 50개 |
-| 중복 판별용 ID | 최대 200개 |
-
-## 권한
-
-Velog Alert는 기능 수행에 필요한 Chrome 권한을 사용합니다.
-
-| 권한 | 용도 |
-|---|---|
-| `alarms` | 설정한 주기에 맞춰 Velog 알림 확인 |
-| `cookies` | 현재 로그인된 Velog 인증 쿠키 확인 |
-| `notifications` | 새 활동을 Chrome/OS 알림으로 표시 |
-| `storage` | 설정, 최근 알림 ID, 히스토리를 브라우저 로컬에 저장 |
-| `offscreen` | 직접 인증 경로 실패 시 Velog 페이지 브리지 fallback |
-| `https://velog.io/*` | Velog 인증 및 fallback 페이지 접근 |
-| `https://v3.velog.io/*` | Velog GraphQL 알림 조회 |
-
-## 개인정보 및 인증정보
-
-- Velog 비밀번호를 요구하거나 저장하지 않습니다.
-- `access_token`은 GraphQL 요청 인증을 위해 실행 중에만 읽습니다.
-- 인증 토큰 값을 `chrome.storage`에 저장하지 않습니다.
-- 별도의 개발자 서버, Supabase, Analytics 서버로 알림 데이터를 보내지 않습니다.
-- 조회한 알림 데이터 중 필요한 일부는 최근 기록 기능을 위해 사용자의 Chrome 로컬 저장소에 저장됩니다.
-- 네트워크 요청은 Velog 서비스에 필요한 요청으로 제한됩니다.
-
-자세한 내용은 [`PRIVACY.md`](PRIVACY.md)를 참고하세요.
-
-## 개발
-
-필요 환경:
-
-- Chrome 120+
-- Node.js 20+ 권장
-
-테스트:
-
-```bash
-npm test
-```
-
-문법 검사:
-
-```bash
-npm run check
-```
-
-## 프로젝트 구조
-
-```text
-velog-alert/
-├── manifest.json
-├── assets/
-├── src/
-│   ├── api/
-│   ├── background/
-│   ├── bridge/
-│   ├── constants/
-│   ├── core/
-│   ├── offscreen/
-│   ├── popup/
-│   └── storage/
-├── tests/
-├── docs/
-├── PRIVACY.md
-├── SECURITY.md
-├── CHANGELOG.md
-└── README.md
-```
-
-## 현재 상태
-
-**v2.1.0 Self-host Cloudflare 개발 브랜치**
-
-2026-09-17 실제 Chrome 환경에서 다음 흐름을 확인했습니다.
-
-```text
-Velog 로그인
-→ 주기적 알림 확인
-→ 신규 활동 감지
-→ Chrome 팝업 알림
-```
-
-자동 테스트는 Extension과 Cloudflare self-host 구조를 함께 검증하도록 확장하고 있습니다.
-
-## 문제 해결
-
-아래 상황은 [`docs/TROUBLESHOOTING.md`](docs/TROUBLESHOOTING.md)를 참고하세요.
-
-- `ACCESS_TOKEN_MISSING`
-- `UNAUTHORIZED`
-- `EMPTY_RESPONSE`
-- `BRIDGE_UNAVAILABLE`
-- 테스트 알림은 뜨지만 실제 Velog 알림이 안 뜨는 경우
-- 자동 확인 시간이 갱신되지 않는 경우
-
-## Chrome Web Store
-
-배포 준비 자료:
-
-- [`docs/CHROME_WEB_STORE.md`](docs/CHROME_WEB_STORE.md)
-- [`docs/STORE_ASSETS.md`](docs/STORE_ASSETS.md)
-- [`docs/RELEASE_CHECKLIST.md`](docs/RELEASE_CHECKLIST.md)
-
-## 주의
-
-Velog Alert는 Velog 웹 서비스가 사용하는 인터페이스에 의존합니다. Velog의 내부 API 또는 인증 방식이 변경되면 확장 프로그램 업데이트가 필요할 수 있습니다.
-
-## Mobile PWA (v2.0 개발 중)
-
-Android와 iPhone에서 별도 앱스토어 설치 없이 홈 화면에 추가하는 PWA를 개발 중입니다.
-
-```text
-PC Extension
-→ 6자리 연결 코드
-
-Phone PWA
-→ 코드 입력
-→ 알림 허용
-→ Web Push
-```
-
-### 휴대폰 알림 연결
-
-PC의 Velog Alert에서 `휴대폰 알림 연결 ↗`을 누르고 6자리 코드를 생성합니다.
-
-**Android**
-
-1. Chrome에서 `https://velog-alert-mobile.netlify.app` 접속
-2. 메뉴 → **앱 설치** 또는 **홈 화면에 추가**
-3. 홈 화면의 Velog Alert 실행
-4. PC의 6자리 코드 입력
-5. **알림 허용 및 연결** → 알림 권한 허용
-
-**iPhone**
-
-1. Safari에서 `https://velog-alert-mobile.netlify.app` 접속
-2. 공유 → **홈 화면에 추가**
-3. 홈 화면의 Velog Alert 실행
-4. PC의 6자리 코드 입력
-5. **알림 허용 및 연결** → 알림 권한 허용
-
-연결 코드는 생성 후 10분 동안 한 번만 사용할 수 있습니다.
-
-구현 상세는 [`docs/MOBILE_PWA_CODE_PAIRING.md`](docs/MOBILE_PWA_CODE_PAIRING.md)를 참고하세요.
-
-
-## PC가 꺼져 있을 때
-
-v2.1에서는 **사용자가 직접 배포한 Cloudflare Worker / Durable Object**가 PC OFF 상태를 대신 처리합니다.
-
-```text
-PC ON
-→ Chrome Extension 약 30초 감지
-→ Cloud heartbeat
-
-PC OFF
-→ heartbeat 만료
-→ 개인 Cloudflare Durable Object
-→ 약 30초 polling
-→ 댓글 / 답글 / 좋아요 / 새 팔로워 / 팔로잉 새 글
-→ Web Push
-```
-
-Always-on을 명시적으로 활성화한 경우에만 Velog access / refresh token을 자신의 Cloudflare Relay로 전송하며, 서버 저장 시 AES-GCM으로 암호화합니다.
-
-## v2.1 Self-host Cloudflare
-
-공개 배포 버전은 **사용자마다 자신의 Cloudflare Free 계정에 Relay를 배포**하는 방식을 권장합니다.
-
-```text
-각 사용자
-Chrome Extension
-    ↓
-본인 Cloudflare Worker / Durable Object
-    ↓ 약 30초
 Velog
-    ↓
-본인 Android / iPhone PWA
+  ↓
+Chrome Extension
+  ↓ 약 30초
+새 활동 감지
+  ├─ Chrome Notification
+  └─ Mobile Web Push
 ```
 
-이 방식에서는 프로젝트 개발자 `0JDaEun`의 서버 비용이나 quota를 여러 사용자가 공유하지 않습니다.
+Chrome Extension이 직접 Velog를 확인합니다. 이때 Cloudflare에는 heartbeat를 보내 **불필요한 중복 Cloud polling을 건너뜁니다.**
 
-PC가 켜져 있으면 Chrome Extension이 약 30초 간격으로 확인하고, PC가 꺼지면 개인 Cloudflare backend가 약 30초 polling으로 대신 확인합니다.
+### PC가 꺼져 있을 때
 
-Cloudflare 설치: [docs/CLOUDFLARE_SELF_HOST.md](docs/CLOUDFLARE_SELF_HOST.md)
+```text
+Velog
+  ↓
+User's Cloudflare Worker
+  ↓
+Durable Object Alarm
+  ↓ 약 30초
+새 활동 감지
+  ↓
+Web Push
+  ↓
+Android / iPhone PWA
+```
 
-### Cloudflare 설치는 Wrangler CLI만 사용
+PC의 마지막 heartbeat는 약 90초 동안 유효합니다. 따라서 PC를 막 종료한 직후에는 Cloud 전환까지 약간의 시간이 추가될 수 있고, 이후에는 약 30초 polling으로 동작합니다.
 
-Cloudflare Plugin, ChatGPT Desktop 또는 별도 MCP 연결은 필요하지 않습니다.
+---
+
+# 설치 및 사용법
+
+## STEP 1. Chrome Extension 설치
+
+정식 배포 ZIP을 받은 경우:
+
+1. `Velog_Alert_v2.1.0_EXTENSION.zip`을 다운로드합니다.
+2. ZIP 압축을 풉니다.
+3. Chrome에서 `chrome://extensions`를 엽니다.
+4. 우측 상단 **개발자 모드**를 켭니다.
+5. **압축해제된 확장 프로그램을 로드합니다**를 누릅니다.
+6. 압축을 푼 폴더에서 `manifest.json`이 바로 들어 있는 폴더를 선택합니다.
+
+> ZIP 자체를 Chrome에 넣는 것이 아니라 반드시 먼저 압축을 풀어야 합니다.
+
+<p align="center">
+  <img src="docs/images/extension-overview.webp" width="360" alt="Velog Alert extension overview">
+</p>
+
+Velog에 로그인한 뒤 Popup에서 **지금 확인**을 한 번 실행하세요.  
+최초 확인은 현재 알림을 baseline으로 저장하므로 과거 알림이 한꺼번에 표시되지 않는 것이 정상입니다.
+
+### 기본 확인 주기
+
+v2.1의 기본값은 **30초**입니다.
+
+```text
+30초 (기본)
+1분
+5분
+10분
+30분
+```
+
+30초 모드는 Chrome 120 이상을 사용합니다.
+
+---
+
+## STEP 2. 모바일을 쓸 경우 Cloudflare backend 배포
+
+PC 알림만 필요하면 이 단계는 생략할 수 있습니다.
+
+모바일 Push와 PC OFF Always-on을 사용하려면 **각 사용자가 자신의 Cloudflare Free 계정에 직접 배포**합니다.
+
+### 준비물
+
+- Git
+- Node.js 20+
+- Cloudflare Free 계정
+- Chrome 120+
+- Velog 로그인 계정
+
+### 배포
 
 ```bash
-cd cloudflare
+git clone https://github.com/0JDaEun/velog-alert.git
+cd velog-alert/cloudflare
+
 npm install
 npx wrangler login --device --use-keyring
 npm run setup
 ```
 
-각 개발자가 자신의 Cloudflare Free 계정에 직접 로그인하고 배포합니다.
+`npm run setup`은 다음 과정을 자동으로 수행합니다.
 
-Developer: [0JDaEun](https://github.com/0JDaEun)
+```text
+Node.js / Cloudflare 로그인 확인
+        ↓
+Free-only 구조 검사
+        ↓
+AUTH_KEY 생성
+        ↓
+Web Push VAPID key 생성
+        ↓
+Wrangler dry-run
+        ↓
+Worker + Durable Objects + PWA 배포
+        ↓
+임시 Secret 파일 삭제
+```
+
+정상적으로 끝나면 Wrangler가 다음과 같은 **본인의 실제 URL**을 출력합니다.
+
+```text
+https://velog-alert-mobile.<your-subdomain>.workers.dev
+```
+
+> `https://*.workers.dev`는 URL 패턴을 설명하기 위한 표기입니다.  
+> Extension에는 반드시 setup 마지막에 출력된 **실제 workers.dev URL**을 입력하세요.
+
+자세한 배포 문서는 [Cloudflare Self-host 설치 가이드](docs/CLOUDFLARE_SELF_HOST.md)를 참고하세요.
+
+---
+
+## STEP 3. Relay URL 연결
+
+Extension Popup에서 **휴대폰 알림 연결**을 열고 아래 순서로 진행합니다.
+
+```text
+개발 설정
+→ Relay URL
+→ 본인의 workers.dev URL 입력
+→ 저장 및 연결 확인
+```
+
+<p align="center">
+  <img src="docs/images/always-on-relay.webp" width="360" alt="Cloudflare relay and always-on settings">
+</p>
+
+정상이라면 다음과 비슷한 상태가 표시됩니다.
+
+```text
+연결 정상 · cloudflare-self-host · 30초 Cloud polling
+```
+
+Relay URL을 바꾸면 PWA의 origin도 달라지므로 휴대폰은 새 Relay 주소에서 다시 연결해야 합니다.
+
+---
+
+## STEP 4. 휴대폰 Pairing
+
+PC에서 **6자리 연결 코드 만들기**를 누릅니다.
+
+<p align="center">
+  <img src="docs/images/mobile-pairing-guide.webp" width="320" alt="Velog Alert mobile pairing guide">
+</p>
+
+README의 코드는 예시입니다. 실제로는 Extension에 표시되는 본인의 6자리 코드를 사용하세요.
+
+- 코드는 약 10분 동안 유효합니다.
+- 한 번 연결에 성공하면 해당 pairing code는 폐기됩니다.
+- 장기 인증정보로 사용하지 않습니다.
+
+### Android
+
+1. Android Chrome에서 자신의 `workers.dev` URL을 엽니다.
+2. 메뉴에서 **앱 설치** 또는 **홈 화면에 추가**를 선택합니다.
+3. 홈 화면의 **Velog Alert**를 실행합니다.
+4. PC에 표시된 6자리 코드를 입력합니다.
+5. **알림 허용 및 연결**을 누릅니다.
+
+### iPhone
+
+1. Safari에서 자신의 `workers.dev` URL을 엽니다.
+2. **공유 → 홈 화면에 추가**를 선택합니다.
+3. 홈 화면에 추가된 **Velog Alert**를 실행합니다.
+4. PC의 6자리 코드를 입력합니다.
+5. iOS 알림 권한을 허용하고 연결합니다.
+
+> iPhone Web Push는 일반 Safari 탭이 아니라 **홈 화면에 설치한 PWA**에서 연결하는 것을 기준으로 합니다.
+
+연결 후 PC의 설정 화면에서 **휴대폰 테스트 알림 보내기**를 눌러 Push가 오는지 먼저 확인하는 것을 권장합니다.
+
+---
+
+## STEP 5. PC OFF Always-on 활성화
+
+휴대폰 Push 연결을 확인한 다음:
+
+```text
+PC가 꺼져 있어도 모든 알림 받기
+→ Always-on 전체 알림 활성화
+```
+
+를 누릅니다.
+
+이 기능을 활성화할 때만 Extension이 현재 Velog `access_token` / `refresh_token`을 **사용자 자신의 Cloudflare Worker**로 전송합니다.
+
+서버 저장 시 token은 AES-256-GCM으로 암호화하며, Velog 비밀번호는 사용하지 않습니다.
+
+정상이라면 설정 화면에 다음과 같이 표시됩니다.
+
+```text
+Always-on 활성화됨
+<Velog username>
+마지막 Cloud 확인 ...
+```
+
+이제 Chrome이 실행 중일 때는 Extension이, PC가 꺼졌을 때는 개인 Cloudflare backend가 알림 감지를 이어받습니다.
+
+---
+
+## 알림 설정
+
+추천 기본값:
+
+| 설정 | 권장 |
+|---|:---:|
+| 전체 알림 | ON |
+| 댓글 | ON |
+| 답글 | ON |
+| 팔로우 새 글 | ON |
+| 좋아요 | 선택 |
+| 새 팔로워 | 선택 |
+| 확인 주기 | 30초 |
+
+팔로잉 새 글은 **기존에 팔로우하고 있던 사용자의 새 게시물**을 대상으로 합니다. 새 사용자를 막 팔로우했을 때 Feed에 과거 게시물이 추가되는 경우는 신규 알림에서 제외하도록 처리합니다.
+
+---
+
+## 보안과 개인정보
+
+Self-host 구조의 핵심은 **사용자의 인증정보를 0JDaEun의 중앙 서버에 모으지 않는 것**입니다.
+
+| 항목 | 처리 방식 |
+|---|---|
+| Velog 비밀번호 | 수집하지 않음 |
+| Desktop access token | 요청 시점에만 사용, Chrome storage에 복사하지 않음 |
+| Always-on token | 사용자가 명시적으로 활성화할 때만 자신의 Worker로 전송 |
+| Cloud 저장 | AES-256-GCM 암호화 |
+| 암호화 master key | Cloudflare Secret |
+| Push subscription | 자신의 Cloudflare backend에 저장 |
+| 중앙 0JDaEun backend | 기본 배포 구조에서 사용하지 않음 |
+| Analytics / 광고 SDK | 사용하지 않음 |
+
+신뢰할 수 없는 제3자의 Relay URL을 입력하지 마세요. Always-on을 사용할 때 Relay 운영자는 해당 backend의 실행 환경을 관리할 수 있으므로 **자신의 Cloudflare Worker 사용을 권장**합니다.
+
+자세한 내용은 [PRIVACY.md](PRIVACY.md)와 [SECURITY.md](SECURITY.md)를 참고하세요.
+
+---
+
+## Free-first
+
+Velog Alert v2.1은 **기본 개발·Self-host 흐름을 유료 인프라 없이 사용할 수 있도록 설계**했습니다.
+
+```text
+GitHub public repository
+Chrome Extension
+Cloudflare Workers Free
+SQLite-backed Durable Objects Free
+Workers Static Assets
+GitHub Actions standard public runners
+```
+
+프로젝트 코드에는 **자동으로 Paid plan으로 전환하는 기능이 없습니다.**
+
+다만 무료 플랜은 무제한이 아니며 Cloudflare의 현재 Free quota와 정책이 적용됩니다. 한도를 초과하면 기능이 일시적으로 실패할 수 있습니다. 실제 운영 전에는 자신의 Cloudflare Usage를 확인하세요.
+
+프로젝트의 무료 운영 원칙은 [FREE_ONLY_POLICY.md](docs/FREE_ONLY_POLICY.md)에 정리되어 있습니다.
+
+---
+
+## FAQ
+
+<details>
+<summary><strong>Q. <code>https://*.workers.dev</code>를 그대로 Relay URL에 넣으면 되나요?</strong></summary>
+
+아니요. `*`는 패턴 표기입니다. `npm run setup` 마지막에 출력된 자신의 실제 `https://...workers.dev` 주소를 입력하세요.
+
+</details>
+
+<details>
+<summary><strong>Q. Wrangler 로그인은 성공했는데 setup에서 로그인이 필요하다고 나옵니다.</strong></summary>
+
+최신 코드를 받은 뒤 다시 확인하세요.
+
+```bash
+git pull
+npx wrangler whoami
+npm run setup
+```
+
+Windows / Git Bash 환경에서도 로컬 Wrangler CLI를 직접 실행하도록 setup script가 구성되어 있습니다.
+
+</details>
+
+<details>
+<summary><strong>Q. iPhone에서 Push가 오지 않습니다.</strong></summary>
+
+Safari에서 Relay URL을 연 뒤 **홈 화면에 추가한 PWA**를 실행해 pairing과 알림 권한 허용을 진행했는지 확인하세요.
+
+</details>
+
+<details>
+<summary><strong>Q. PC를 끄면 바로 30초 안에 전환되나요?</strong></summary>
+
+항상 그런 것은 아닙니다. 마지막 desktop heartbeat가 약 90초 동안 유효하기 때문에 PC를 막 종료한 직후에는 Cloud 전환까지 추가 시간이 발생할 수 있습니다. 전환 이후 Cloud polling 목표 주기는 약 30초입니다.
+
+</details>
+
+<details>
+<summary><strong>Q. 완전한 실시간 알림인가요?</strong></summary>
+
+아닙니다. Velog Alert 전용 공식 Webhook이 아니라 주기 조회 방식이므로 정확한 표현은 **약 30초 polling 기반 준실시간 알림**입니다.
+
+</details>
+
+<details>
+<summary><strong>Q. Cloudflare 유료 플랜이 필요한가요?</strong></summary>
+
+기본 Self-host 구성은 Workers Free를 전제로 설계했습니다. 프로젝트가 자동으로 유료 플랜을 활성화하지 않습니다. 다만 자신의 계정에서 다른 Cloudflare 서비스를 함께 사용한다면 전체 Usage는 직접 확인해야 합니다.
+
+</details>
+
+---
+
+## 개발 구조
+
+```text
+.
+├─ manifest.json
+├─ src/
+│  ├─ api/
+│  ├─ background/
+│  ├─ bridge/
+│  ├─ core/
+│  ├─ mobile/
+│  ├─ popup/
+│  └─ storage/
+├─ cloudflare/
+│  ├─ public/          # PWA
+│  ├─ scripts/
+│  ├─ src/
+│  │  ├─ index.ts
+│  │  ├─ registry.ts
+│  │  ├─ shard.ts
+│  │  ├─ velog.ts
+│  │  ├─ crypto.ts
+│  │  └─ push.ts
+│  └─ wrangler.jsonc
+├─ docs/
+└─ tests/
+```
+
+주요 구성:
+
+- **Chrome MV3 Service Worker** — Desktop polling / Chrome notification
+- **RegistryDO** — 6자리 pairing과 account-to-shard 배정
+- **PollShardDO** — PC OFF polling / 인증 상태 / dedup
+- **Workers Static Assets** — 모바일 PWA
+- **Web Push + VAPID** — Android / iPhone 알림
+- **AES-GCM auth vault** — Always-on Velog 인증정보 암호화
+
+---
+
+## 테스트
+
+Extension:
+
+```bash
+npm install
+npm run check
+npm test
+```
+
+Cloudflare:
+
+```bash
+cd cloudflare
+npm install
+npm run free-check
+npm run check
+npm run dry-run
+```
+
+`dry-run`은 실제 Worker를 배포하지 않고 bundle과 Wrangler 설정을 검사합니다.
+
+---
+
+## Developer
+
+**0JDaEun**
+
+- GitHub: https://github.com/0JDaEun
+- Repository: https://github.com/0JDaEun/velog-alert
+- 설치 상세: [docs/INSTALLATION.md](docs/INSTALLATION.md)
+- Cloudflare Self-host: [docs/CLOUDFLARE_SELF_HOST.md](docs/CLOUDFLARE_SELF_HOST.md)
+
+---
+
+Velog Alert는 Velog 사용 중 놓치기 쉬운 활동을 더 빠르게 확인하기 위해 만든 개인 프로젝트입니다.
