@@ -42,10 +42,10 @@ cd velog-alert/cloudflare
 npm install
 ```
 
-Cloudflare 로그인:
+Cloudflare 로그인(지원되는 OS에서는 OAuth 자격증명을 OS keychain에 보관):
 
 ```bash
-npx wrangler login
+npx wrangler login --use-keyring
 ```
 
 ## 3. 한 번에 설정 + 배포
@@ -56,11 +56,15 @@ npm run setup
 
 스크립트가 자동으로:
 
-1. AES-256-GCM AUTH_KEY 생성
-2. Web Push VAPID key pair 생성
-3. Cloudflare Secret 파일을 임시 생성
-4. Worker + Durable Objects + PWA 배포
-5. 임시 Secret 파일 삭제
+0. Node.js 버전 및 Cloudflare 로그인 상태 확인
+1. Free-only 구조 검사
+2. 실제 배포 전 Wrangler dry-run
+
+3. AES-256-GCM AUTH_KEY 생성
+4. Web Push VAPID key pair 생성
+5. Cloudflare Secret 파일을 임시 생성
+6. Worker + Durable Objects + PWA 배포
+7. 임시 Secret 파일 삭제
 
 를 수행합니다.
 
