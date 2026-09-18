@@ -1,39 +1,43 @@
 # Mobile PWA — 6-digit Code Pairing
 
+기준일: 2026-09-18  
+현재 구조: **Cloudflare Self-host v2.1**
+
 ## 목표 UX
 
 ```text
 PC Velog Alert
-→ 휴대폰 연결
-→ 6자리 코드 표시
+→ 자신의 Cloudflare Relay URL 저장
+→ 6자리 코드 생성
 
 Android / iPhone
-→ Velog Alert PWA 접속
+→ 같은 workers.dev 주소의 Velog Alert PWA 접속
 → 홈 화면에 추가
 → 6자리 코드 입력
 → 알림 허용
 → 연결 완료
 ```
 
-회원가입, QR, Supabase, 별도 모바일 앱 설치를 사용하지 않는다.
+회원가입, QR, Supabase, 별도 모바일 앱 설치를 사용하지 않습니다.
 
 ## Hosting / Relay
 
-한 개의 Netlify 프로젝트에 다음을 함께 배포한다.
+각 사용자가 자신의 Cloudflare Free 계정에 다음을 함께 배포합니다.
 
 ```text
-pwa/                  정적 PWA
-netlify/functions/    Tiny Push Relay
-Netlify Blobs         Pairing / Device / Dedup KV
+cloudflare/
+├─ public/          PWA Static Assets
+└─ src/
+   ├─ index.ts      HTTP API
+   ├─ registry.ts   pairing / shard allocation
+   └─ shard.ts      device / auth / polling / dedup
 ```
 
-Netlify Blobs는 별도 DB 생성이나 migration 없이 Function에서 바로 사용하는 key/value storage다.
+Pairing 및 account/device 상태는 SQLite-backed Durable Objects에 저장됩니다.
 
 ## Pairing
 
-PC Extension은 32-byte `extensionSecret`을 로컬에서 생성한다.
-
-서버에는 원문을 저장하지 않으며 SHA-256 값만 device group key로 사용한다.
+PC Extension은 32-byte `extensionSecret`을 로컬에서 생성합니다. 서버에서는 SHA-256 해시를 account 식별에 사용합니다.
 
 PC:
 
@@ -41,7 +45,7 @@ PC:
 POST /api/pair/create
 X-Extension-Secret: <secret>
 
-→ 482731
+→ 482 731
 ```
 
 Pairing Code:
@@ -49,8 +53,7 @@ Pairing Code:
 - 숫자 6자리
 - 10분 만료
 - 1회 사용
-- session attempt 최대 5회
-- IP 단위 분당 제한
+- 성공한 claim 직후 삭제
 
 Phone:
 
@@ -64,42 +67,28 @@ POST /api/pair/claim
 }
 ```
 
-성공하면 code를 즉시 삭제하고 device token을 발급한다.
+성공하면 device token을 발급하고 Web Push subscription을 사용자 계정의 PollShard에 저장합니다.
 
 ## Web Push
 
-서버 환경변수:
+Cloudflare에 VAPID public/private key와 subject를 설정합니다. Private key는 Extension/PWA에 포함하지 않습니다.
 
-```text
-VAPID_PUBLIC_KEY
-VAPID_PRIVATE_KEY
-VAPID_SUBJECT
-```
+## Always-on
 
-Private Key는 Extension/PWA에 포함하지 않는다.
+PC OFF에서도 전체 알림을 받으려면 사용자가 Extension에서 **Always-on 전체 알림 활성화**를 명시적으로 선택합니다.
 
-## 저장하지 않는 정보
-
-- Velog password
-- Velog access token
-- Velog refresh token
-- Velog cookies
-- 전체 Velog notification history
-
-Relay에는 push routing에 필요한 subscription과 최소 device metadata만 저장한다.
+Velog 비밀번호는 요청하지 않습니다. 인증정보는 자기 Cloudflare Worker에만 전달되고 저장 전 AES-256-GCM으로 암호화합니다.
 
 ## Android
 
-Chrome의 PWA install prompt를 사용한다.
+Chrome에서 PWA를 열고 **앱 설치** 또는 **홈 화면에 추가**를 사용합니다.
 
 ## iPhone
 
-Safari → 공유 → 홈 화면에 추가 → 홈 화면의 Velog Alert 실행 → 알림 허용.
+Safari → 공유 → 홈 화면에 추가 → 홈 화면의 Velog Alert 실행 → 알림 허용 순서입니다.
 
-Web Push 등록은 standalone 상태에서 진행한다.
+## Relay 변경
 
-## v2.0 제한
+v2.1에는 중앙 기본 Relay가 없습니다. Extension에서 자신의 `https://...workers.dev` URL을 먼저 저장해야 합니다.
 
-v2.0의 Velog 감지는 PC Chrome Extension이 담당한다.
-
-PC가 완전히 종료된 상태에서도 새 글을 감지하는 Always-on 기능은 별도 단계로 남긴다.
+Relay URL을 변경하면 새 Relay 주소에서 PWA를 다시 pairing하는 것을 권장합니다.
