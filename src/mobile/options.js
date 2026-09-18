@@ -9,6 +9,7 @@ import {
   enableCloudAuth,
   getCloudAuthStatus,
   disableCloudAuth,
+  checkRelayHealth,
 } from "./push-client.js";
 
 const $ = (selector) => document.querySelector(selector);
@@ -24,6 +25,7 @@ const els = {
   refreshDevices: $("#refreshDevices"),
   testMobilePush: $("#testMobilePush"),
   relayBase: $("#relayBase"),
+  relayHealth: $("#relayHealth"),
   saveRelay: $("#saveRelay"),
   status: $("#status"),
   cloudAuthDot: $("#cloudAuthDot"),
@@ -37,6 +39,23 @@ function showStatus(message) {
   els.status.textContent = message;
   els.status.classList.remove("hidden");
   setTimeout(() => els.status.classList.add("hidden"), 3500);
+}
+
+async function renderRelayHealth(relay = null) {
+  els.relayHealth.className = "relay-health";
+  els.relayHealth.textContent = "Relay 연결을 확인하는 중입니다.";
+
+  try {
+    const result = await checkRelayHealth(relay);
+    els.relayHealth.className = "relay-health ok";
+    els.relayHealth.textContent =
+      `연결 정상 · ${result.backend || result.service || "Velog Alert"} · ${result.pollIntervalSeconds || "?"}초 Cloud polling`;
+    return true;
+  } catch (error) {
+    els.relayHealth.className = "relay-health error";
+    els.relayHealth.textContent = `Relay 확인 실패 · ${error.message}`;
+    return false;
+  }
 }
 
 async function renderState() {
@@ -217,13 +236,28 @@ els.saveRelay.addEventListener("click", async () => {
     return;
   }
 
+  const previous = (await getMobileState()).relayBase;
+  const healthy = await renderRelayHealth(value);
+
+  if (!healthy) {
+    showStatus("Relay URL을 저장하지 않았습니다. Cloudflare 배포 주소를 확인하세요.");
+    return;
+  }
+
   await saveMobileState({ relayBase: value });
   els.mobileUrl.textContent = value;
   els.mobileUrl.href = value;
-  showStatus("Relay URL을 저장했습니다.");
+
+  if (previous !== value) {
+    showStatus("Relay가 변경되었습니다. 휴대폰 PWA를 새 Relay 주소에서 다시 연결해 주세요.");
+  } else {
+    showStatus("Relay URL 연결이 정상입니다.");
+  }
+
   await renderDevices();
 });
 
 await renderState();
+await renderRelayHealth();
 await renderDevices();
 await renderCloudAuthStatus();
