@@ -1,3 +1,4 @@
+import { getVelogCloudCredentials } from "../api/velog-auth.js";
 const STORAGE_KEY = "mobilePush";
 
 export const DEFAULT_RELAY_BASE = "https://velog-alert-mobile.netlify.app";
@@ -173,6 +174,68 @@ export async function setAlwaysOnFollowWatchEnabled(enabled) {
   const payload = await response.json().catch(() => ({}));
   if (!response.ok) {
     throw new Error(payload.error || `FOLLOW_WATCH_TOGGLE_HTTP_${response.status}`);
+  }
+
+  return payload;
+}
+
+
+export async function enableCloudAuth() {
+  const state = await getMobileState();
+  if (!state.enabled) {
+    throw new Error("MOBILE_PUSH_DISABLED");
+  }
+
+  const credentials = await getVelogCloudCredentials();
+
+  const response = await fetch(`${state.relayBase}/api/cloud-auth/enable`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      "X-Extension-Secret": state.extensionSecret,
+    },
+    body: JSON.stringify(credentials),
+  });
+
+  const payload = await response.json().catch(() => ({}));
+  if (!response.ok) {
+    throw new Error(payload.error || `CLOUD_AUTH_ENABLE_HTTP_${response.status}`);
+  }
+
+  return payload;
+}
+
+export async function getCloudAuthStatus() {
+  const state = await getMobileState();
+
+  const response = await fetch(`${state.relayBase}/api/cloud-auth/status`, {
+    headers: {
+      "X-Extension-Secret": state.extensionSecret,
+    },
+    cache: "no-store",
+  });
+
+  const payload = await response.json().catch(() => ({}));
+  if (!response.ok) {
+    throw new Error(payload.error || `CLOUD_AUTH_STATUS_HTTP_${response.status}`);
+  }
+
+  return payload;
+}
+
+export async function disableCloudAuth() {
+  const state = await getMobileState();
+
+  const response = await fetch(`${state.relayBase}/api/cloud-auth`, {
+    method: "DELETE",
+    headers: {
+      "X-Extension-Secret": state.extensionSecret,
+    },
+  });
+
+  const payload = await response.json().catch(() => ({}));
+  if (!response.ok) {
+    throw new Error(payload.error || `CLOUD_AUTH_DISABLE_HTTP_${response.status}`);
   }
 
   return payload;
