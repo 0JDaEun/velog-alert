@@ -18,6 +18,7 @@
 - [x] workers.dev host permission
 - [x] Relay health check
 - [x] 신규 16/48/128 아이콘 assets 반영
+- [x] iOS/PWA 180/192/512 신규 아이콘 및 versioned asset 경로 반영
 - [ ] Chrome toolbar / extension page / notification 실제 아이콘 렌더 확인
 
 ## Cloudflare Self-host
@@ -73,8 +74,8 @@
 - [x] root JavaScript syntax check
 - [x] root unit tests
 - [x] Cloudflare TypeScript check workflow
-- [x] latest CI all green — Run #85 / head `def1ddb03f2178f78e2e8c97245ff83c082561e3`
-- [x] CI Extension artifact 생성 — Artifact `10533541701`, SHA256 `b53065555bbe4d522a075805f617f115715e3d61346ce6a80e93e429586e446e`
+- [x] latest CI all green — Run #87 / head `a2c0c0423bb9c51cc3f78caafeb0c19d98f93fa6`
+- [x] CI Extension artifact 생성 — Artifact `10533975979`, SHA256 `d5fa5008e6a99fa2b77c8530fabeb47bc787afcde0b97385a03a83d11173e666`
 
 ## Release
 
