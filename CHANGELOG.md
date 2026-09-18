@@ -1,29 +1,46 @@
 # Changelog
 
-## 2.0.0 — in development
+## 2.1.0 — in development
 
 ### Added
 
-- Always-on 팔로잉 새 글 Cloud Watcher (PC OFF 지원)
-- 1분 Netlify Scheduled Function 기반 공개 게시물 확인
-- Extension → Cloud 팔로잉 username 동기화
+- 사용자별 Cloudflare Workers Free Self-host backend
+- SQLite-backed Durable Objects 기반 Registry / PollShard
+- 약 30초 PC OFF polling
+- PC heartbeat를 통한 Desktop / Cloud 중복 polling 억제
+- notifications + feedPosts 통합 snapshot
+- 6자리 10분 one-time mobile pairing
+- Android / iPhone PWA Web Push
+- Always-on explicit opt-in
+- AES-256-GCM 인증정보 저장
+- Cloudflare setup / free-check / dry-run workflow
+- 신규 Velog Alert 16/48/128 Extension icon
 
-- Android / iPhone 공통 Velog Alert PWA
-- 6자리 일회용 휴대폰 연결 코드
-- 10분 pairing 만료 / 1회 사용
-- Web Push subscription 등록
-- Netlify Functions 기반 Tiny Push Relay
-- Netlify Blobs 기반 pairing / device / dedup 저장
-- extensionSecret SHA-256 식별
-- 모바일 기기 목록 확인
-- 모바일 알림 전송 실패와 Desktop 알림 경로 격리
-- Chrome 120+에서 사용할 수 있는 30초 빠른 확인 주기
+### Changed
 
-### Security
+- 모바일 Relay 기본값을 제거하고 사용자 자신의 `*.workers.dev` URL을 필수로 변경
+- Netlify host permission 제거
+- Netlify runtime 및 중복 root PWA 제거
+- Netlify 전용 테스트를 Cloudflare Self-host 테스트로 마이그레이션
 
-- Velog access token / refresh token / cookie는 Push Relay로 보내지 않음
-- VAPID private key는 server environment에만 저장
-- pairing claim IP rate limit 및 code attempt 제한
+### Validation
+
+- Extension syntax checks / unit tests green
+- Cloudflare Free-only check / TypeScript / Wrangler dry-run green
+- Cloudflare Free 계정 실제 deploy 성공
+- Extension ZIP CI artifact 생성
+
+### Pending
+
+- 최신 소스 live health / pairing / mobile push E2E
+- PC OFF 5종 알림 E2E
+- 인증 갱신/만료 E2E
+- Android/iPhone 최종 실기기 확인
+- final merge / release
+
+## 2.0.0 — superseded prototype
+
+v2.0에서는 Netlify 기반 모바일 Relay/PWA 및 Always-on 실험을 진행했습니다. 이 runtime은 v2.1 Cloudflare Self-host 구조로 대체되어 현재 릴리즈 브랜치에서 제거되었습니다.
 
 ## 1.1.0 — 2026-09-17
 
