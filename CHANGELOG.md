@@ -4,6 +4,10 @@
 
 ### Added
 
+- Always-on 팔로잉 새 글 Cloud Watcher (PC OFF 지원)
+- 1분 Netlify Scheduled Function 기반 공개 게시물 확인
+- Extension → Cloud 팔로잉 username 동기화
+
 - Android / iPhone 공통 Velog Alert PWA
 - 6자리 일회용 휴대폰 연결 코드
 - 10분 pairing 만료 / 1회 사용
