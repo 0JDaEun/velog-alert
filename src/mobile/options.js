@@ -5,6 +5,7 @@ import {
   listMobileDevices,
   saveMobileState,
   sendMobileTestPush,
+  setAlwaysOnFollowWatchEnabled,
 } from "./push-client.js";
 
 const $ = (selector) => document.querySelector(selector);
@@ -65,6 +66,13 @@ async function renderDevices() {
 
 els.enabled.addEventListener("change", async () => {
   await saveMobileState({ enabled: els.enabled.checked });
+
+  try {
+    await setAlwaysOnFollowWatchEnabled(els.enabled.checked);
+  } catch (error) {
+    console.warn("[Velog Alert] always-on toggle sync failed", error);
+  }
+
   showStatus(els.enabled.checked ? "휴대폰 알림을 켰습니다." : "휴대폰 알림을 껐습니다.");
 });
 
