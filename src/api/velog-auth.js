@@ -78,3 +78,23 @@ export async function getVelogAuthDiagnostics() {
     } : null,
   };
 }
+
+
+export async function getVelogCloudCredentials() {
+  const [access, refresh] = await Promise.all([
+    findCookie('access_token'),
+    findCookie('refresh_token'),
+  ]);
+
+  if (!refresh?.value) {
+    throw new VelogAuthError(
+      'PC가 꺼진 상태의 알림을 사용하려면 Velog refresh_token이 필요합니다. Velog에 다시 로그인한 뒤 시도해주세요.',
+      'REFRESH_TOKEN_MISSING'
+    );
+  }
+
+  return {
+    accessToken: access?.value ?? null,
+    refreshToken: refresh.value,
+  };
+}
