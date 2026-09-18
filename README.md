@@ -52,6 +52,21 @@ Velog 게시글
 
 Velog API 직접 인증 경로가 실패하는 경우를 대비해 Velog 페이지 브리지 fallback도 포함되어 있습니다.
 
+## 현재 설치 방식
+
+> 현재 Velog Alert는 Chrome Web Store 정식 등록 전입니다. 따라서 다른 사용자는 ZIP 파일을 내려받아 **Chrome 개발자 모드에서 직접 설치**해야 합니다.
+
+```text
+ZIP 다운로드
+→ 압축 해제
+→ chrome://extensions
+→ 개발자 모드 ON
+→ "압축해제된 확장 프로그램을 로드합니다"
+→ manifest.json이 들어있는 폴더 선택
+```
+
+ZIP 파일 자체를 Chrome에 넣는 방식은 아니며, 반드시 먼저 압축을 풀어야 합니다. Chrome Web Store 등록 후에는 이 수동 설치 과정 없이 일반 확장 프로그램처럼 설치할 수 있도록 변경할 예정입니다.
+
 ## 설치
 
 ### 개발자 모드에서 설치
@@ -234,5 +249,27 @@ Phone PWA
 → 알림 허용
 → Web Push
 ```
+
+### 휴대폰 알림 연결
+
+PC의 Velog Alert에서 `휴대폰 알림 연결 ↗`을 누르고 6자리 코드를 생성합니다.
+
+**Android**
+
+1. Chrome에서 `https://velog-alert-mobile.netlify.app` 접속
+2. 메뉴 → **앱 설치** 또는 **홈 화면에 추가**
+3. 홈 화면의 Velog Alert 실행
+4. PC의 6자리 코드 입력
+5. **알림 허용 및 연결** → 알림 권한 허용
+
+**iPhone**
+
+1. Safari에서 `https://velog-alert-mobile.netlify.app` 접속
+2. 공유 → **홈 화면에 추가**
+3. 홈 화면의 Velog Alert 실행
+4. PC의 6자리 코드 입력
+5. **알림 허용 및 연결** → 알림 권한 허용
+
+연결 코드는 생성 후 10분 동안 한 번만 사용할 수 있습니다.
 
 구현 상세는 [`docs/MOBILE_PWA_CODE_PAIRING.md`](docs/MOBILE_PWA_CODE_PAIRING.md)를 참고하세요.
