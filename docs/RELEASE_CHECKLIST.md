@@ -74,8 +74,8 @@
 - [x] root JavaScript syntax check
 - [x] root unit tests
 - [x] Cloudflare TypeScript check workflow
-- [x] latest CI all green — Run #87 / head `a2c0c0423bb9c51cc3f78caafeb0c19d98f93fa6`
-- [x] CI Extension artifact 생성 — Artifact `10533975979`, SHA256 `d5fa5008e6a99fa2b77c8530fabeb47bc787afcde0b97385a03a83d11173e666`
+- [x] PWA icon refresh validation CI green — Run #89 / head `4aef3144b904b24d574fa0a09ba537a936a99058`
+- [x] CI Extension artifact 생성 — Artifact `10533811140`, SHA256 `2f23b396f4a882763d39718a95e853d983854734af7f6c1e007e61617261a36d`
 
 ## Release
 
