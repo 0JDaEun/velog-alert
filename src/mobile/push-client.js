@@ -3,6 +3,10 @@ const STORAGE_KEY = "mobilePush";
 
 export const DEFAULT_RELAY_BASE = "https://velog-alert-mobile.netlify.app";
 
+export function isSelfHostedRelay(relayBase) {
+  return Boolean(relayBase && relayBase !== DEFAULT_RELAY_BASE);
+}
+
 function bytesToBase64Url(bytes) {
   let binary = "";
   for (const byte of bytes) binary += String.fromCharCode(byte);
@@ -236,6 +240,59 @@ export async function disableCloudAuth() {
   const payload = await response.json().catch(() => ({}));
   if (!response.ok) {
     throw new Error(payload.error || `CLOUD_AUTH_DISABLE_HTTP_${response.status}`);
+  }
+
+  return payload;
+}
+
+
+export async function sendCloudHeartbeat() {
+  const state = await getMobileState();
+  if (!state.enabled || !isSelfHostedRelay(state.relayBase)) {
+    return { skipped: true };
+  }
+
+  const response = await fetch(`${state.relayBase}/api/heartbeat`, {
+    method: "POST",
+    headers: {
+      "X-Extension-Secret": state.extensionSecret,
+    },
+  });
+
+  const payload = await response.json().catch(() => ({}));
+  if (!response.ok) {
+    throw new Error(payload.error || `HEARTBEAT_HTTP_${response.status}`);
+  }
+
+  return payload;
+}
+
+export async function syncCloudSettings(settings = {}) {
+  const state = await getMobileState();
+  if (!state.enabled || !isSelfHostedRelay(state.relayBase)) {
+    return { skipped: true };
+  }
+
+  const response = await fetch(`${state.relayBase}/api/settings`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      "X-Extension-Secret": state.extensionSecret,
+    },
+    body: JSON.stringify({
+      settings: {
+        comment: Boolean(settings.comment),
+        commentReply: Boolean(settings.commentReply),
+        postLike: Boolean(settings.postLike),
+        follow: Boolean(settings.follow),
+        followPost: Boolean(settings.followPost),
+      },
+    }),
+  });
+
+  const payload = await response.json().catch(() => ({}));
+  if (!response.ok) {
+    throw new Error(payload.error || `SETTINGS_SYNC_HTTP_${response.status}`);
   }
 
   return payload;
