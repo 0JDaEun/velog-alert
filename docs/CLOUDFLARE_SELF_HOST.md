@@ -1,167 +1,452 @@
-# Cloudflare Self-host 설치
+# Cloudflare Self-host 가이드
 
-Velog Alert v2.1의 권장 배포 방식은 **사용자마다 자신의 Cloudflare Free 계정에 Relay를 하나씩 배포하는 방식**입니다.
-
-이 구조에서는 개발자 0JDaEun의 서버 계정을 여러 사용자가 공유하지 않습니다.
+Velog Alert의 모바일 Push / PC OFF Always-on 기능은 **각 사용자가 자신의 Cloudflare 계정에 직접 배포하는 Self-host 방식**을 사용합니다.
 
 ```text
-각 사용자
-├─ 자신의 Chrome Extension
-├─ 자신의 Cloudflare Worker / Durable Object
-├─ 자신의 암호화된 Velog 인증정보
-└─ 자신의 Android / iPhone PWA
+내 Chrome Extension
+        ↓
+내 Cloudflare Worker / Durable Objects
+        ↓
+내 Android / iPhone PWA
 ```
 
-## 장점
+중앙 서버에 여러 사용자의 Velog 인증정보를 모으는 구조가 아닙니다.
 
-- PC를 꺼도 약 30초 간격으로 Velog 새 활동 확인
-- 사용자마다 Cloudflare Free quota를 별도로 사용
-- 중앙 서버 운영비 없음
-- 다른 사용자의 Velog 인증정보와 완전히 분리
-- 서버를 직접 삭제하면 Cloud 데이터도 같이 제거 가능
+---
 
-> Velog는 Velog Alert용 공식 실시간 Webhook을 제공하지 않으므로 엄밀한 event-driven 실시간은 아닙니다. 현재 목표는 **약 30초 polling 기반 준실시간**입니다.
+## 이 문서에서 다루는 것
 
-## 1. 준비
+- Cloudflare 최초 배포
+- Relay URL 확인
+- 배포 후 smoke test
+- 일반 업데이트
+- 로컬 검증
+- 제거
 
-필요한 것:
+처음부터 전체 설치를 진행한다면 먼저 [INSTALLATION.md](INSTALLATION.md)를 권장합니다.
 
-- GitHub
+---
+
+# 1. 준비
+
+필요 환경:
+
+- Node.js 20 이상
+- npm
+- Git
 - Cloudflare Free 계정
-- Node.js 20+
-- Chrome 120+
-- Velog 로그인 계정
 
-Cloudflare Workers Paid 가입은 필요하지 않습니다.
+버전 확인:
 
-Cloudflare Plugin/MCP는 필요하지 않습니다. 브라우저 또는 터미널에서 Wrangler OAuth 로그인만 사용합니다.
+```bash
+node -v
+npm -v
+```
 
-## 2. 저장소 받기
+Node.js 20 미만이면 setup이 중단됩니다.
+
+---
+
+# 2. 저장소 준비
 
 ```bash
 git clone https://github.com/0JDaEun/velog-alert.git
 cd velog-alert
-
-# v2.1 정식 릴리즈 전 테스트 단계에서는 아래 브랜치 사용
-git checkout feat/cloudflare-free-first-v3
-
 cd cloudflare
+```
+
+> 별도 feature branch checkout은 필요하지 않습니다.  
+> 현재 v2.1 설치 기준은 **`main` 브랜치**입니다.
+
+현재 터미널 위치:
+
+```text
+velog-alert/cloudflare/
+```
+
+파일 구조:
+
+```text
+cloudflare/
+├─ package.json
+├─ wrangler.jsonc
+├─ scripts/
+│  ├─ setup.mjs
+│  └─ free-check.mjs
+├─ src/
+└─ public/
+```
+
+Cloudflare 관련 npm 명령은 이 폴더에서 실행합니다.
+
+---
+
+# 3. 최초 배포
+
+## 3-1. 의존성 설치
+
+```bash
 npm install
 ```
 
-Cloudflare 로그인(지원되는 OS에서는 OAuth 자격증명을 OS keychain에 보관):
+## 3-2. Cloudflare 로그인
 
 ```bash
 npx wrangler login --device --use-keyring
 ```
 
-## 3. 한 번에 설정 + 배포
+브라우저에서 자신의 Cloudflare 계정으로 로그인합니다.
+
+로그인 확인:
+
+```bash
+npx wrangler whoami
+```
+
+계정 정보가 출력되면 정상입니다.
+
+## 3-3. setup 실행
 
 ```bash
 npm run setup
 ```
 
-스크립트가 자동으로:
+setup이 자동으로 수행하는 작업:
 
-0. Node.js 버전 및 Cloudflare 로그인 상태 확인
-1. Free-only 구조 검사
-2. 실제 배포 전 Wrangler dry-run
+```text
+Node.js 20+ 확인
+→ Cloudflare 로그인 확인
+→ Free-only 구조 검사
+→ VAPID 연락 이메일 입력
+→ AES-256-GCM AUTH_KEY 생성
+→ Web Push VAPID key pair 생성
+→ 임시 Secret 파일 생성
+→ Wrangler dry-run
+→ Worker + Durable Objects + PWA 배포
+→ 임시 Secret 파일 삭제
+```
 
-3. AES-256-GCM AUTH_KEY 생성
-4. Web Push VAPID key pair 생성
-5. Cloudflare Secret 파일을 임시 생성
-6. Worker + Durable Objects + PWA 배포
-7. 임시 Secret 파일 삭제
+중간에 다음 입력이 나타납니다.
 
-를 수행합니다.
+```text
+VAPID 연락 이메일:
+```
 
-Wrangler 출력 마지막에 나타나는:
+Web Push VAPID subject로 사용할 본인의 이메일 주소를 입력합니다.
+
+> [!IMPORTANT]
+> `npm run setup`은 **최초 설치용**입니다.  
+> 일반 코드 업데이트 때 반복 실행하지 않습니다.
+
+---
+
+# 4. Cloudflare Relay URL 확인
+
+배포가 성공하면 Wrangler 마지막 출력에 다음 형태의 주소가 표시됩니다.
 
 ```text
 https://<worker-name>.<your-subdomain>.workers.dev
 ```
 
-주소를 복사합니다.
+이 문서에서는 이 주소를 **Cloudflare Relay URL**이라고 부릅니다.
 
-## 4. Extension에 Relay URL 입력
+같은 URL이 다음 두 역할을 모두 합니다.
 
-Chrome:
+```text
+Cloudflare Relay URL
+├─ Worker API
+└─ Mobile PWA
+```
+
+> `https://*.workers.dev`는 예시 패턴입니다.  
+> Extension에는 Wrangler가 실제로 출력한 본인의 URL을 입력합니다.
+
+---
+
+# 5. 배포 확인
+
+## 5-1. Health
+
+브라우저:
+
+```text
+https://내-Relay-URL/api/health
+```
+
+정상 응답 예시:
+
+```json
+{
+  "ok": true,
+  "service": "velog-alert",
+  "version": "2.1.0",
+  "backend": "cloudflare-self-host",
+  "pollIntervalSeconds": 30
+}
+```
+
+## 5-2. PWA
+
+브라우저에서 Relay URL의 루트를 엽니다.
+
+```text
+https://내-Relay-URL/
+```
+
+Velog Alert 모바일 연결 화면이 표시되면 Static Assets도 정상입니다.
+
+## 5-3. Extension 연결
+
+Chrome Extension:
 
 ```text
 Velog Alert
 → 휴대폰 알림 연결
-→ 개발 설정
-→ Relay URL
+→ Cloudflare Relay 설정
+→ Relay URL 입력
+→ 저장 및 연결 확인
 ```
 
-에 자신의 `https://*.workers.dev` 주소를 붙여넣고 저장합니다.
-
-## 5. 휴대폰 연결
-
-1. PC에서 6자리 연결 코드 생성
-2. 자신의 Workers URL을 휴대폰에서 열기
-3. Android Chrome 또는 iPhone Safari에서 홈 화면에 추가
-4. PWA 실행
-5. 6자리 코드 입력
-6. 알림 허용
-
-## 6. PC OFF 전체 알림 활성화
-
-Extension 설정의:
+정상 표시:
 
 ```text
-PC가 꺼져 있어도 모든 알림 받기
-→ Always-on 전체 알림 활성화
+연결 정상 · cloudflare-self-host · 30초 Cloud polling
 ```
 
-를 누릅니다.
+---
 
-이때 Extension이 현재 Velog access_token / refresh_token을 읽어 **사용자 자신의 Cloudflare Worker**로 전송합니다.
+# 6. 동작 구조
 
-Cloudflare에는 AES-GCM 암호문만 저장합니다.
-
-Velog 비밀번호는 사용하지 않습니다.
-
-## 7. 준실시간 동작
+## PC ON
 
 ```text
-PC ON
-→ Chrome Extension: 약 30초
-→ Cloud heartbeat 전송
-→ Cloud Velog polling 생략
+Chrome Extension
+→ 약 30초 polling
+→ Desktop / Mobile 알림
+→ Cloudflare heartbeat
+```
 
-PC OFF
-→ heartbeat 약 90초 후 만료
-→ Cloudflare Durable Object Alarm
-→ 약 30초마다 Velog 확인
+heartbeat가 유효한 동안 Cloudflare는 해당 계정의 Velog polling을 건너뜁니다.
+
+## PC OFF
+
+```text
+Chrome 종료
+→ heartbeat 중단
+→ 약 90초 후 TTL 만료
+→ Durable Object Alarm
+→ 약 30초 polling
 → Web Push
 ```
 
-PC를 막 끈 직후에는 마지막 heartbeat TTL 때문에 Cloud 전환까지 최대 약 90초가 추가될 수 있습니다.
-그 이후에는 약 30초 polling으로 동작합니다.
+Cloud polling은 PC가 꺼져 있을 때의 백업 역할입니다.
 
-## 8. Free quota
+---
 
-사용자 1명이 24시간 PC OFF라고 가정하면:
+# 7. 주요 구성
+
+## RegistryDO
+
+담당:
+
+- 6자리 Pairing code
+- account → Poll Shard 배정
+
+Pairing code는 약 10분 유효하며 1회 사용 후 폐기됩니다.
+
+## PollShardDO
+
+담당:
+
+- PC OFF polling
+- Cloud auth 상태
+- notification dedup
+- Web Push
+
+한 shard는 최대 16계정을 처리하도록 구성합니다.
+
+## PWA
+
+위치:
 
 ```text
-30초 polling
-= 2,880 alarm cycles / day
+cloudflare/public/
 ```
 
-Cloudflare Durable Objects Free의 100,000 requests/day보다 충분히 작습니다.
+Worker Static Assets로 함께 배포됩니다.
 
-따라서 **각 사용자가 자기 Cloudflare 계정을 사용하는 방식에서는 소규모 개인 사용이 Free quota에 매우 여유롭습니다.**
+---
 
-실제 제한은 Cloudflare보다 Velog 쪽 요청 정책이 먼저 문제가 될 수 있으므로 polling은 30초보다 짧게 설정하지 않습니다.
+# 8. 인증정보와 Secret
 
-## 9. 삭제
+Always-on 활성화 시 현재 Velog access / refresh token을 자신의 Cloudflare Worker로 전송합니다.
 
-Cloudflare Dashboard에서 해당 Worker를 삭제하면 자신의 Cloud backend를 제거할 수 있습니다.
+```text
+Velog Token
+    ↓
+AES-256-GCM
+    ↓
+Encrypted Data
+    ↓
+Durable Object
+```
 
-Extension에서 `Always-on 해제 및 인증 삭제`를 먼저 누르면 저장된 Velog 인증정보를 즉시 삭제할 수 있습니다.
+암호화 master key와 Web Push VAPID key는 Cloudflare Secret으로 관리합니다.
 
-## Developer
+setup이 자동으로 생성/등록하는 Secret:
 
-- GitHub: https://github.com/0JDaEun
-- Repository: https://github.com/0JDaEun/velog-alert
+```text
+AUTH_KEY
+VAPID_PUBLIC_KEY
+VAPID_PRIVATE_KEY
+VAPID_SUBJECT
+```
+
+Velog 비밀번호는 사용하지 않습니다.
+
+---
+
+# 9. 일반 업데이트
+
+> [!WARNING]
+> 일반 업데이트에서는 `npm run setup`을 다시 실행하지 않습니다.
+
+실행 순서:
+
+```bash
+cd velog-alert
+git pull
+
+cd cloudflare
+npm install
+npm run validate
+npm run deploy
+```
+
+## validate
+
+```bash
+npm run validate
+```
+
+내부 실행:
+
+```text
+npm run free-check
+→ npm run check
+→ npm run dry-run
+```
+
+실제 배포 없이 Free-only 구조, TypeScript, Wrangler bundle을 검증합니다.
+
+## deploy
+
+```bash
+npm run deploy
+```
+
+기존 Cloudflare Secret을 유지한 채 현재 코드를 배포합니다.
+
+---
+
+# 10. 로컬 개발 / 검증
+
+현재 위치:
+
+```text
+velog-alert/cloudflare/
+```
+
+### TypeScript / script 검사
+
+```bash
+npm run check
+```
+
+### Free-only 검사
+
+```bash
+npm run free-check
+```
+
+### 실제 배포 없는 Wrangler 검사
+
+```bash
+npm run dry-run
+```
+
+### 전체 검증
+
+```bash
+npm run validate
+```
+
+### 로컬 Worker
+
+```bash
+npm run dev
+```
+
+---
+
+# 11. Free-first 원칙
+
+기본 구성:
+
+```text
+Cloudflare Workers Free
+SQLite-backed Durable Objects
+Workers Static Assets
+GitHub Actions public runners
+```
+
+프로젝트 코드에는 자동으로 Paid plan으로 전환하는 로직이 없습니다.
+
+다만 Cloudflare Free quota는 무제한이 아니며 실제 계정 Usage는 사용자가 직접 확인해야 합니다.
+
+자세한 원칙: [FREE_ONLY_POLICY.md](FREE_ONLY_POLICY.md)
+
+---
+
+# 12. 제거
+
+## 먼저 Always-on 인증 삭제
+
+Extension:
+
+```text
+휴대폰 알림 연결
+→ Always-on 해제 및 인증 삭제
+```
+
+## 휴대폰 연결 해제
+
+PWA:
+
+```text
+이 기기 연결 해제
+```
+
+## Worker 삭제
+
+Cloudflare Dashboard에서 본인이 배포한 Velog Alert Worker를 삭제합니다.
+
+전체 제거 권장 순서:
+
+```text
+Always-on 인증 삭제
+→ 휴대폰 연결 해제
+→ Worker 삭제
+```
+
+---
+
+## 문제 해결
+
+- Relay 연결 실패
+- Wrangler 로그인 문제
+- Pairing 실패
+- Push 미수신
+- Always-on 인증 문제
+
+는 [TROUBLESHOOTING.md](TROUBLESHOOTING.md)를 참고하세요.
