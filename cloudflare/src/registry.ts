@@ -114,7 +114,7 @@ export class RegistryDO extends DurableObject<Env> {
     }
 
     if (request.method === "POST" && url.pathname === "/pair/create") {
-      const body = await request.json<{ extensionHash?: string }>();
+      const body = await request.json() as { extensionHash?: string };
       if (!body.extensionHash) return Response.json({ error: "INVALID_ACCOUNT" }, { status: 400 });
 
       try {
