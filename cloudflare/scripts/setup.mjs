@@ -44,7 +44,7 @@ try {
     console.error(whoami.stdout || "");
     console.error(whoami.stderr || "");
     throw new Error(
-      "Cloudflare 로그인이 필요합니다. 먼저 'npx wrangler login --use-keyring'을 실행한 뒤 다시 시도하세요."
+      "Cloudflare 로그인이 필요합니다. 먼저 'npx wrangler login --device --use-keyring'을 실행한 뒤 다시 시도하세요."
     );
   }
 
