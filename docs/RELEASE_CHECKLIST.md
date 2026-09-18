@@ -73,13 +73,14 @@
 - [x] root JavaScript syntax check
 - [x] root unit tests
 - [x] Cloudflare TypeScript check workflow
-- [x] latest CI all green
+- [x] latest CI all green — Run #85 / head `def1ddb03f2178f78e2e8c97245ff83c082561e3`
+- [x] CI Extension artifact 생성 — Artifact `10533541701`, SHA256 `b53065555bbe4d522a075805f617f115715e3d61346ce6a80e93e429586e446e`
 
 ## Release
 
 - [ ] Draft PR #4 review
 - [ ] `main` merge
-- [ ] Extension ZIP
+- [ ] 최종 Release Extension ZIP — 실기기 / PC-OFF E2E 완료 후 확정
 - [ ] Source ZIP
 - [ ] SHA256
 - [ ] GitHub Release `v2.1.0`
