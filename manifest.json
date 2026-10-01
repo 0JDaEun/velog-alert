@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
   "name": "Velog Alert",
-  "version": "2.1.0",
+  "version": "2.1.1",
   "description": "Velog 새 활동을 감지해 데스크톱과 개인 Cloudflare 기반 모바일 PWA로 알림을 전달합니다.",
   "permissions": [
     "alarms",
