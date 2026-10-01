@@ -15,7 +15,7 @@
 
 <p align="center">
   <img alt="Manifest V3" src="https://img.shields.io/badge/Chrome-Manifest_V3-4285F4?logo=googlechrome&logoColor=white">
-  <img alt="Version 2.1.0" src="https://img.shields.io/badge/version-2.1.0-20C997">
+  <img alt="Version 2.1.1" src="https://img.shields.io/badge/version-2.1.1-20C997">
   <img alt="Chrome 120+" src="https://img.shields.io/badge/Chrome-120%2B-4285F4">
   <img alt="Cloudflare Workers" src="https://img.shields.io/badge/Cloudflare-Workers-F38020?logo=cloudflare&logoColor=white">
   <img alt="PWA" src="https://img.shields.io/badge/Mobile-PWA-5A0FC8">
@@ -32,6 +32,26 @@
 > [!NOTE]
 > Velog Alert는 Velog 공식 제품이 아닌 독립적인 오픈소스 프로젝트입니다.  
 > 공식 Webhook이 아니라 **약 30초 polling 기반의 준실시간 알림**을 제공합니다.
+
+## v2.1.1 업데이트 — PC OFF 알림 안정화
+
+v2.1.1은 **PC가 꺼진 상태의 Always-on 모바일 알림 경로를 안정화한 패치 버전**입니다.
+
+기존 v2.1.0에서는 Velog/API가 일시적으로 실패한 뒤 Cloudflare Durable Object의 polling alarm이 더 이상 예약되지 않아, PC가 켜져 있을 때는 정상처럼 보이지만 **PC OFF 상태의 모바일 알림이 계속 멈출 수 있는 경우**가 있었습니다.
+
+v2.1.1에서는 다음을 수정했습니다.
+
+- 일시적인 Cloud polling 오류는 `error` 상태로 기록하되 **alarm을 유지하고 다음 polling에서 재시도**
+- 실제 인증 만료(`401/403`)만 `expired`로 분리해 Cloud polling 중단
+- Desktop heartbeat가 들어올 때 누락된 alarm을 **자동 복구**
+- Web Push 전달이 실패하면 dedup/frontier를 소비하지 않고 **다음 alarm에서 다시 전송**
+- PC OFF 복구 경로에 대한 회귀 테스트 추가
+
+> [!IMPORTANT]
+> 기존 v2.1.0 사용자는 **Extension 파일만 업데이트하면 끝이 아닙니다.**  
+> PC OFF / 모바일 알림을 사용한다면 최신 코드를 받은 뒤 자신의 Cloudflare Worker에도 `npm run deploy`를 실행해야 합니다.
+
+바로 업데이트하려면 아래 [기존 사용자 업데이트 방법](#기존-사용자-업데이트-방법)을 확인하세요.
 
 ---
 
@@ -355,33 +375,149 @@ PC 종료 직후에는 이 TTL이 만료된 뒤 Cloud polling으로 전환됩니
 
 ---
 
-# 최초 설치와 업데이트는 다릅니다
+# 기존 사용자 업데이트 방법
 
-## 최초 Cloudflare 설치
+최초 설치와 업데이트 절차는 다릅니다. 특히 **Cloudflare Worker는 GitHub의 최신 코드로 자동 배포되지 않습니다.**
 
-위치: **`velog-alert/cloudflare/`**
-
-```bash
-npm install
-npx wrangler login --device --use-keyring
-npm run setup
+```text
+GitHub 최신 코드
+    │
+    ├─ Chrome Extension
+    │    └─ 파일 업데이트 후 chrome://extensions 에서 새로고침
+    │
+    └─ Cloudflare Backend
+         └─ cloudflare/ 폴더에서 npm run deploy
 ```
 
-## 이후 일반 업데이트
+즉, `git pull` 또는 새 ZIP 다운로드만으로는 기존에 배포한 Worker가 바뀌지 않습니다.
+
+## Git clone으로 설치한 경우
+
+터미널이 이미 `velog-alert/` 폴더 안이라면 다시 `cd velog-alert`를 실행할 필요가 없습니다.
+
+현재 위치를 모르겠다면 Windows Git Bash 기준으로 먼저 저장소 루트로 이동합니다.
 
 ```bash
-cd velog-alert
-git pull
+cd /c/ssafy/velog-alert
+```
 
+그 다음 최신 `main`을 받습니다.
+
+```bash
+git status --short
+git switch main
+git pull origin main
+git log -1 --oneline
+```
+
+그 후 Chrome Extension을 갱신합니다.
+
+```text
+chrome://extensions
+→ Velog Alert
+→ 새로고침
+→ Version 2.1.1 확인
+```
+
+PC OFF / 모바일 Push를 사용한다면 Cloudflare도 이어서 업데이트합니다.
+
+```bash
 cd cloudflare
 npm install
 npm run validate
 npm run deploy
 ```
 
+정상 배포 시 마지막에 다음과 비슷한 출력이 나타납니다.
+
+```text
+Uploaded velog-alert-mobile
+Deployed velog-alert-mobile triggers
+https://<worker-name>.<your-subdomain>.workers.dev
+Current Version ID: ...
+```
+
+## GitHub에서 Download ZIP으로 설치한 경우
+
+Git을 사용하지 않는다면 기존 폴더에서 `git pull`을 실행하지 않아도 됩니다.
+
+1. Repository의 **Code → Download ZIP**에서 최신 `velog-alert-main.zip`을 다시 받습니다.
+2. 새 폴더에 압축을 풉니다.
+3. `manifest.json`이 바로 들어 있는 `velog-alert-main/` 폴더를 확인합니다.
+4. Chrome의 `chrome://extensions`에서 기존 Velog Alert을 제거한 뒤 최신 폴더를 다시 **압축해제된 확장 프로그램으로 로드**하거나, 기존에 로드한 폴더의 내용을 최신 파일로 교체한 뒤 **새로고침**합니다.
+5. Chrome 확장 프로그램 카드에서 **Version 2.1.1**을 확인합니다.
+
+압축을 푼 폴더 구조는 다음과 같습니다.
+
+```text
+Downloads/
+└─ velog-alert-main/
+   ├─ manifest.json
+   ├─ src/
+   ├─ assets/
+   ├─ cloudflare/
+   └─ docs/
+```
+
+PC OFF / 모바일 Push까지 사용한다면 **새로 받은 폴더의 `cloudflare/`** 로 이동합니다.
+
+Windows Git Bash 예시:
+
+```bash
+cd ~/Downloads/velog-alert-main/cloudflare
+npm install
+npm run validate
+npm run deploy
+```
+
+다운로드 위치가 다르다면 자신의 실제 압축 해제 경로로 이동하면 됩니다.
+
+> [!IMPORTANT]
+> Extension을 최신 ZIP으로 바꿔도 이미 Cloudflare에 배포되어 있는 Worker 코드는 자동으로 바뀌지 않습니다.  
+> Always-on을 사용한다면 반드시 최신 `cloudflare/` 폴더에서 `npm run deploy`까지 실행하세요.
+
+## 최초 Cloudflare 설치인 경우에만
+
+아직 한 번도 자신의 Cloudflare Worker를 만든 적이 없다면:
+
+```bash
+cd cloudflare
+npm install
+npx wrangler login --device --use-keyring
+npm run setup
+```
+
 > [!WARNING]
-> 일반적인 코드 업데이트 때문에 `npm run setup`을 다시 실행하지 마세요.  
-> `setup`은 AUTH_KEY와 VAPID Key를 새로 생성하는 **최초 설치용 명령**입니다.
+> **기존 사용자의 일반 업데이트에서는 `npm run setup`을 다시 실행하지 마세요.**  
+> `setup`은 AUTH_KEY와 VAPID Key를 생성하고 Secret을 등록하는 최초 설치용 흐름입니다. 업데이트는 `npm run validate` → `npm run deploy`만 사용합니다.
+
+## v2.1.1 업데이트 확인
+
+Extension:
+
+```text
+chrome://extensions
+→ Velog Alert
+→ Version 2.1.1
+```
+
+Cloudflare:
+
+```text
+https://내-Relay-URL/api/health
+→ "version": "2.1.1"
+```
+
+PC OFF 최종 확인:
+
+```text
+Always-on 활성화 확인
+→ 모바일 테스트 Push 확인
+→ PC 종료
+→ 마지막 heartbeat TTL 약 90초 만료
+→ 실제 신규 Velog 이벤트 발생
+→ 다음 Cloud polling에서 모바일 Push 확인
+```
 
 ---
 
@@ -451,7 +587,7 @@ npm run validate
 CI는 테스트가 통과하면 테스트용 Extension package도 생성합니다.
 
 ```text
-Velog_Alert_v2.1.0_EXTENSION.zip
+Velog_Alert_v2.1.1_EXTENSION.zip
 ```
 
 > 이 파일은 CI artifact 이름과 패키징 구조를 고정하기 위한 테스트 산출물입니다.  
@@ -495,6 +631,6 @@ velog-alert/
 ---
 
 <p align="center">
-  <strong>Velog Alert v2.1.0</strong><br/>
+  <strong>Velog Alert v2.1.1</strong><br/>
   Developer · <a href="https://github.com/0JDaEun">0JDaEun</a>
 </p>
