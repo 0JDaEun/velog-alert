@@ -66,7 +66,7 @@ cloudflare/
 
 ```text
 Velog Alert
-Version 2.1.0
+Version 2.1.1
 ```
 
 ---
@@ -405,7 +405,7 @@ Pairing code는:
 새 팔로워 → 해당 사용자 글 목록
 ```
 
-v2.1 click-handoff 수정 이후에도 연결 화면만 열린다면 먼저 Cloudflare를 최신 코드로 배포하고 홈 화면 PWA를 한 번 실행하세요.
+v2.1.1 click-handoff 수정 이후에도 연결 화면만 열린다면 먼저 Cloudflare를 최신 코드로 배포하고 홈 화면 PWA를 한 번 실행하세요.
 
 ```bash
 cd velog-alert
@@ -607,7 +607,7 @@ Issue를 작성할 때는 **Secret 없이** 다음 정보만 포함하는 것을
 ```text
 OS:
 Chrome Version:
-Velog Alert Version: 2.1.0
+Velog Alert Version: 2.1.1
 
 증상:
 재현 순서:
