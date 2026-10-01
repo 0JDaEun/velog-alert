@@ -148,7 +148,7 @@ export class PollShardDO extends DurableObject<Env> {
   private async reconcileAlarm() {
     const accounts = await this.listAccounts();
     const hasCloudAccount = accounts.some(
-      (account) => account.cloudEnabled && account.authStatus === "active",
+      (account) => account.cloudEnabled && account.authStatus !== "expired",
     );
 
     if (hasCloudAccount) {
@@ -176,7 +176,13 @@ export class PollShardDO extends DurableObject<Env> {
     }
 
     const result = await sendEventToDevices(this.env, account.devices, event);
-    this.rememberDedup(account, underlyingKeys);
+
+    // Only consume an event after at least one device actually accepted it.
+    // If every push fails, keep the event retryable on the next alarm.
+    if (result.delivered > 0) {
+      this.rememberDedup(account, underlyingKeys);
+    }
+
     return { ...result, duplicate: false };
   }
 
@@ -219,13 +225,17 @@ export class PollShardDO extends DurableObject<Env> {
         .filter((event) => shouldSend(event, account.settings))
         .filter((event) => !(account.dedupEventKeys ?? []).includes(event.eventKey));
 
+      let deliverySucceeded = true;
+
       if (events.length > 0) {
         const outgoing = summarizeEvents(events);
-        await this.sendIfNew(
+        const delivery = await this.sendIfNew(
           account,
           outgoing,
           events.map((event) => event.eventKey),
         );
+
+        deliverySucceeded = delivery.duplicate || delivery.delivered > 0;
       }
 
       if (
@@ -236,6 +246,20 @@ export class PollShardDO extends DurableObject<Env> {
           snapshot.tokens,
           this.env.AUTH_KEY,
         );
+      }
+
+      if (!deliverySucceeded) {
+        // Velog polling succeeded, but no push endpoint accepted the event.
+        // Preserve both frontiers and dedup state so the next alarm retries it.
+        account.authStatus = "active";
+        account.lastCloudErrorAt = nowIso();
+        await this.saveAccount(account);
+
+        console.error("[poll-shard] push delivery failed; event kept for retry", {
+          account: account.extensionHash.slice(0, 10),
+          eventCount: events.length,
+        });
+        return;
       }
 
       const nextNotificationFrontier = makeFrontier(
@@ -531,6 +555,13 @@ export class PollShardDO extends DurableObject<Env> {
       const account = await this.getAccount(extensionHash);
       account.heartbeatUntil = new Date(Date.now() + HEARTBEAT_TTL_MS).toISOString();
       await this.saveAccount(account);
+
+      // A desktop heartbeat is also a cheap self-healing opportunity.
+      // If an earlier transient failure lost the alarm, restore it here.
+      if (account.cloudEnabled && account.authStatus !== "expired") {
+        await this.ensureAlarm();
+      }
+
       return Response.json({
         ok: true,
         activeUntil: account.heartbeatUntil,

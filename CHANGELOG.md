@@ -23,6 +23,13 @@
 - Netlify runtime 및 중복 root PWA 제거
 - Netlify 전용 테스트를 Cloudflare Self-host 테스트로 마이그레이션
 
+### Fixed
+
+- 일시적인 Cloud polling 오류 후 Durable Object alarm이 삭제되어 PC OFF 알림이 멈추던 문제
+- Desktop heartbeat 시 누락된 cloud alarm을 자동 복구
+- Web Push 전달 실패 시 dedup/frontier를 소비하지 않고 다음 alarm에서 재시도
+- Velog HTTP 401/403을 인증 만료로 분류해 잘못된 transient error 상태를 방지
+
 ### Validation
 
 - Extension syntax checks / unit tests green

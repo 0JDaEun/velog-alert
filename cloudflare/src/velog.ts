@@ -120,6 +120,10 @@ export async function fetchVelogSnapshot(tokens: VelogTokens): Promise<VelogSnap
   });
 
   if (!response.ok) {
+    if (response.status === 401 || response.status === 403) {
+      throw new Error("VELOG_AUTH_EXPIRED");
+    }
+
     throw new Error(`VELOG_HTTP_${response.status}`);
   }
 
