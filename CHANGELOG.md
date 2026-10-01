@@ -1,6 +1,34 @@
 # Changelog
 
-## 2.1.0 — in development
+## 2.1.1 — 2026-10-01
+
+### Fixed
+
+- 일시적인 Cloud polling 오류 후 Durable Object alarm이 삭제되어 PC OFF 알림이 멈출 수 있던 문제
+- transient error 상태에서도 alarm을 유지하고 다음 polling에서 자동 재시도
+- Desktop heartbeat 시 누락된 cloud alarm을 자동 복구
+- Web Push 전달 실패 시 dedup/frontier를 소비하지 않고 다음 alarm에서 재시도
+- Velog HTTP 401/403을 인증 만료로 분류해 transient error와 expired auth를 분리
+
+### Changed
+
+- Extension / Worker health / CI package 버전을 2.1.1로 통일
+- README에 Git clone / Download ZIP 기존 사용자 업데이트 절차 추가
+- 기존 사용자의 Cloudflare 업데이트는 `npm run setup`이 아니라 `npm run validate` → `npm run deploy`를 사용하도록 안내 강화
+
+### Validation
+
+- PC OFF alarm recovery 회귀 테스트 추가
+- Extension syntax checks / unit tests green
+- Cloudflare Free-only check / TypeScript / Wrangler dry-run green
+
+### Upgrade
+
+- Chrome Extension 파일을 최신 2.1.1로 갱신
+- PC OFF / 모바일 Push 사용자는 자신의 Cloudflare Worker도 최신 `cloudflare/` 소스에서 다시 deploy
+- 기존 AUTH_KEY / VAPID Secret을 유지하기 위해 일반 업데이트에서는 `npm run setup`을 다시 실행하지 않음
+
+## 2.1.0 — 2026-09-18
 
 ### Added
 
@@ -23,27 +51,12 @@
 - Netlify runtime 및 중복 root PWA 제거
 - Netlify 전용 테스트를 Cloudflare Self-host 테스트로 마이그레이션
 
-### Fixed
-
-- 일시적인 Cloud polling 오류 후 Durable Object alarm이 삭제되어 PC OFF 알림이 멈추던 문제
-- Desktop heartbeat 시 누락된 cloud alarm을 자동 복구
-- Web Push 전달 실패 시 dedup/frontier를 소비하지 않고 다음 alarm에서 재시도
-- Velog HTTP 401/403을 인증 만료로 분류해 잘못된 transient error 상태를 방지
-
 ### Validation
 
 - Extension syntax checks / unit tests green
 - Cloudflare Free-only check / TypeScript / Wrangler dry-run green
 - Cloudflare Free 계정 실제 deploy 성공
 - Extension ZIP CI artifact 생성
-
-### Pending
-
-- 최신 소스 live health / pairing / mobile push E2E
-- PC OFF 5종 알림 E2E
-- 인증 갱신/만료 E2E
-- Android/iPhone 최종 실기기 확인
-- final merge / release
 
 ## 2.0.0 — superseded prototype
 

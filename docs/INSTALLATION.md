@@ -1,4 +1,4 @@
-# Velog Alert v2.1 설치 가이드
+# Velog Alert v2.1.1 설치 가이드
 
 이 문서는 **처음 설치하는 사용자용 전체 순서**입니다.
 
@@ -124,7 +124,7 @@ Chrome 확장 프로그램 목록에 다음이 표시됩니다.
 
 ```text
 Velog Alert
-Version 2.1.0
+Version 2.1.1
 ```
 
 필요하면 Chrome 툴바의 퍼즐 아이콘에서 **Velog Alert 고정**을 선택합니다.
@@ -328,7 +328,7 @@ https://내-Relay-URL/api/health
 {
   "ok": true,
   "service": "velog-alert",
-  "version": "2.1.0",
+  "version": "2.1.1",
   "backend": "cloudflare-self-host",
   "pollIntervalSeconds": 30
 }
@@ -650,7 +650,7 @@ Always-on 인증 삭제
 
 ## PC
 
-- [ ] Chrome에 Velog Alert 2.1.0 표시
+- [ ] Chrome에 Velog Alert 2.1.1 표시
 - [ ] Velog 로그인 인식
 - [ ] Desktop 테스트 알림 수신
 - [ ] 지금 확인 성공

@@ -1,6 +1,6 @@
 # Velog Alert — Cloudflare Backend
 
-이 디렉터리는 Velog Alert v2.1의 **모바일 PWA / Web Push / PC OFF Always-on** 기능을 담당합니다.
+이 디렉터리는 Velog Alert v2.1.1의 **모바일 PWA / Web Push / PC OFF Always-on** 기능을 담당합니다.
 
 일반 사용자 설치 순서:
 

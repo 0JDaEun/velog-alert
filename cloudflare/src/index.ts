@@ -91,7 +91,7 @@ async function handleApi(request: Request, env: Env) {
     return json({
       ok: true,
       service: "velog-alert",
-      version: "2.1.0",
+      version: "2.1.1",
       backend: "cloudflare-self-host",
       pollIntervalSeconds: 30,
     });
