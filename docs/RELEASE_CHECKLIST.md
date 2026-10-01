@@ -1,9 +1,9 @@
-# Velog Alert v2.1 Release Checklist
+# Velog Alert v2.1.1 Release Checklist
 
 ## Extension
 
 - [x] Manifest V3
-- [x] version 2.1.0
+- [x] version 2.1.1
 - [x] Chrome 120+
 - [x] 30초 기본 desktop polling
 - [x] 댓글 detector
@@ -84,7 +84,7 @@
 - [ ] 최종 Release Extension ZIP — 실기기 / PC-OFF E2E 완료 후 확정
 - [ ] Source ZIP
 - [ ] SHA256
-- [ ] GitHub Release `v2.1.0`
+- [ ] GitHub Release `v2.1.1`
 - [x] Repository의 Netlify legacy runtime / top-level PWA 중복 제거
 - [x] Manifest의 Netlify host permission 제거
 - [x] Relay 기본값 제거 — 사용자 Cloudflare URL 필수
