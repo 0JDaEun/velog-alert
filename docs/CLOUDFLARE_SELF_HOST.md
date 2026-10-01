@@ -56,7 +56,7 @@ cd cloudflare
 ```
 
 > 별도 feature branch checkout은 필요하지 않습니다.  
-> 현재 v2.1 설치 기준은 **`main` 브랜치**입니다.
+> 현재 v2.1.1 설치 기준은 **`main` 브랜치**입니다.
 
 현재 터미널 위치:
 
@@ -179,7 +179,7 @@ https://내-Relay-URL/api/health
 {
   "ok": true,
   "service": "velog-alert",
-  "version": "2.1.0",
+  "version": "2.1.1",
   "backend": "cloudflare-self-host",
   "pollIntervalSeconds": 30
 }
