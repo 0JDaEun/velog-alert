@@ -33,6 +33,32 @@
 > Velog Alert는 Velog 공식 제품이 아닌 독립적인 오픈소스 프로젝트입니다.  
 > 공식 Webhook이 아니라 **약 30초 polling 기반의 준실시간 알림**을 제공합니다.
 
+## Engineering overview
+
+Velog Alert는 데스크톱 확장 프로그램과 개인 Cloudflare 릴레이를 분리하여, 브라우저가 종료되어도 별도 릴레이가 동작하도록 설계했다.
+
+```mermaid
+flowchart TD
+    V[Velog GraphQL] --> E[Chrome Extension]
+    V --> C[Cloudflare Relay]
+    E --> N[Desktop Notification]
+    C --> D[Durable Object polling alarm]
+    D --> P[Web Push]
+    P --> M[Mobile PWA]
+```
+
+| 설계 과제 | 구현 방향 |
+| --- | --- |
+| 중복 방지 | 알림 ID 및 기존 상태와 신규 활동 비교 |
+| PC OFF 알림 | Durable Object alarm 기반 polling |
+| 일시 장애 복구 | 다음 alarm 예약 유지 및 heartbeat 복구 |
+| 인증 만료 | 일시 오류와 만료 상태 구분 |
+| 전송 실패 | 성공 전 중복 판별 상태를 소비하지 않는 재시도 설계 |
+
+[아키텍처](docs/ARCHITECTURE.md) · [설치 문서](docs/INSTALLATION.md) · [PC OFF 회귀 테스트](tests/pc-off-recovery.test.js) · [테스트 보고서](docs/TEST_REPORT.md)
+
+아래는 기존 릴리즈 및 사용자 설치 안내를 유지한 내용이다. 이번 문서 갱신에서 새로운 버전 배포나 실기기 Push 검증을 수행하지 않았다.
+
 ## v2.1.1 업데이트 — PC OFF 알림 안정화
 
 v2.1.1은 **PC가 꺼진 상태의 Always-on 모바일 알림 경로를 안정화한 패치 버전**입니다.
